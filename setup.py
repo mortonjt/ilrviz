@@ -65,8 +65,9 @@ setup(name='canvas',
           'pandas >= 0.18.0',
           'scipy >= 0.15.1',
           'nose >= 1.3.7',
-          'scikit-bio == 0.4.0',
-          'ete3'
+          'scikit-bio == 0.4.2',
+          'ete3',
+          'biom-format'
       ],
       classifiers=classifiers,
       package_data={
