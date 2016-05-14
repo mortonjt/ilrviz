@@ -4,7 +4,6 @@ import numpy as np
 import numpy.testing as npt
 from canvas.phylogeny import phylogenetic_basis, _count_matrix, _balance_basis
 from skbio import TreeNode
-from six import StringIO
 from skbio.util import get_data_path
 
 
@@ -45,13 +44,13 @@ class TestPhylogeny(unittest.TestCase):
         with self.assertRaises(ValueError):
             tree = u"(((a,b)c, d)root);"
             t = TreeNode.read([tree])
-            res = _count_matrix(t)
+            _count_matrix(t)
 
     def test_count_matrix_trifurcating_error(self):
         with self.assertRaises(ValueError):
             tree = u"((a,b,e)c, d);"
             t = TreeNode.read([tree])
-            res = _count_matrix(t)
+            _count_matrix(t)
 
     def test_balance_basis_base_case(self):
         tree = u"(a,b);"

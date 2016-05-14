@@ -1,15 +1,6 @@
 from __future__ import division
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from skbio.stats.composition import (closure, perturb, power, ilr, ilr_inv,
-                                     inner, perturb_inv, clr, clr_inv, centralize)
-from skbio import TreeNode
-from biom import load_table
-from matplotlib import cm
-
-import random
-from ete3 import Tree, TreeStyle, NodeStyle, faces, AttrFace, CircleFace, BarChartFace
+from skbio.stats.composition import clr_inv
 from collections import OrderedDict
 
 
@@ -19,7 +10,8 @@ def _balance_basis(tree_node):
 
     n_tips = sum([n.is_tip() for n in tree_node.traverse()])
     counts = _count_matrix(tree_node)
-    counts = OrderedDict([(x,counts[x]) for x in counts.keys() if not x.is_tip()])
+    counts = OrderedDict([(x, counts[x]) for x in counts.keys()
+                          if not x.is_tip()])
     r = np.array([counts[n]['r'] for n in counts.keys()])
     s = np.array([counts[n]['l'] for n in counts.keys()])
     k = np.array([counts[n]['k'] for n in counts.keys()])
@@ -29,7 +21,7 @@ def _balance_basis(tree_node):
     b = -1*np.sqrt(r / (s*(r+s)))
 
     basis = np.zeros((n_tips-1, n_tips))
-    for i in range(len(counts.keys())) :
+    for i in range(len(counts.keys())):
         basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
     return basis, counts.keys()
 
@@ -75,7 +67,7 @@ def _count_matrix(treenode):
     nodes = list(treenode.levelorder(include_self=True))
     # fill in the dictionary
     counts = OrderedDict()
-    columns=['k', 'r', 'l', 't', 'tips']
+    columns = ['k', 'r', 'l', 't', 'tips']
     for n in nodes:
         if n not in counts:
             counts[n] = {}
