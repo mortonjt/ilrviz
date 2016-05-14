@@ -58,11 +58,10 @@ def phylogenetic_basis(tree_node):
 
     Examples
     --------
-    >>> from skbio.stats.composition import phylogenetic_basis
-    >>> from six import StringIO
+    >>> from canvas.phylogeny import phylogenetic_basis
     >>> from skbio import TreeNode
-    >>> tree = "((b,c)a, d)root;"
-    >>> t = TreeNode.read(StringIO(tree))
+    >>> tree = u"((b,c)a, d)root;"
+    >>> t = TreeNode.read([tree])
     >>> phylogenetic_basis(t)
     array([[ 0.62985567,  0.18507216,  0.18507216],
            [ 0.28399541,  0.57597535,  0.14002925]])
