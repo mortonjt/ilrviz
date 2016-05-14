@@ -15,8 +15,8 @@ from collections import OrderedDict
 
 def _balance_basis(tree_node):
     """ Helper method for calculating phylogenetic basis
-
     """
+
     n_tips = sum([n.is_tip() for n in tree_node.traverse()])
     counts = _count_matrix(tree_node)
     counts = OrderedDict([(x,counts[x]) for x in counts.keys() if not x.is_tip()])
@@ -67,7 +67,7 @@ def phylogenetic_basis(tree_node):
     array([[ 0.62985567,  0.18507216,  0.18507216],
            [ 0.28399541,  0.57597535,  0.14002925]])
     """
-    basis, nodes = balance_basis(tree_node)
+    basis, nodes = _balance_basis(tree_node)
     basis = clr_inv(basis)
     return basis, nodes
 
