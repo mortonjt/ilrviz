@@ -98,24 +98,15 @@ class TestPhylogeny(unittest.TestCase):
         self.assertItemsEqual(exp_keys, res_keys)
 
     def test_phylogenetic_basis_large1(self):
-        fname = get_data_path('large_tree1.nwk',
+        fname = get_data_path('large_tree.nwk',
                               subfolder='data/phylogeny')
         t = TreeNode.read(fname)
         exp_basis = np.loadtxt(
-            get_data_path('large_tree1_basis.txt',
+            get_data_path('large_tree_basis.txt',
                           subfolder='data/phylogeny'))
         res_basis, res_keys = phylogenetic_basis(t)
         npt.assert_allclose(exp_basis, res_basis)
 
-    def test_phylogenetic_basis_large2(self):
-        fname = get_data_path('large_tree2.nwk',
-                              subfolder='data/phylogeny')
-        t = TreeNode.read(fname)
-        exp_basis = np.loadtxt(
-            get_data_path('large_tree2_basis.txt',
-                          subfolder='data/phylogeny'))
-        res_basis, res_keys = phylogenetic_basis(t)
-        npt.assert_allclose(exp_basis, res_basis)
 
 if __name__ == "__main__":
     unittest.main()
