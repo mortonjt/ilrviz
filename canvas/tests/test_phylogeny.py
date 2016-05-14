@@ -8,8 +8,6 @@ from skbio.util import get_data_path
 
 
 class TestPhylogeny(unittest.TestCase):
-    def setUp(self):
-        pass
 
     def test_count_matrix_base_case(self):
         tree = u"(a,b);"

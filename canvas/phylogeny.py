@@ -10,20 +10,21 @@ def _balance_basis(tree_node):
 
     n_tips = sum([n.is_tip() for n in tree_node.traverse()])
     counts = _count_matrix(tree_node)
-    counts = OrderedDict([(x, counts[x]) for x in counts.keys()
-                          if not x.is_tip()])
-    r = np.array([counts[n]['r'] for n in counts.keys()])
-    s = np.array([counts[n]['l'] for n in counts.keys()])
-    k = np.array([counts[n]['k'] for n in counts.keys()])
-    t = np.array([counts[n]['t'] for n in counts.keys()])
+    counts = OrderedDict([(x, counts[x])
+                          for x in counts.keys() if not x.is_tip()])
+    nds = counts.keys()
+    r = np.array([counts[n]['r'] for n in nds])
+    s = np.array([counts[n]['l'] for n in nds])
+    k = np.array([counts[n]['k'] for n in nds])
+    t = np.array([counts[n]['t'] for n in nds])
 
     a = np.sqrt(s / (r*(r+s)))
     b = -1*np.sqrt(r / (s*(r+s)))
 
     basis = np.zeros((n_tips-1, n_tips))
-    for i in range(len(counts.keys())):
+    for i in range(len(nds)):
         basis[i, :] = np.array([0]*k[i] + [a[i]]*r[i] + [b[i]]*s[i] + [0]*t[i])
-    return basis, counts.keys()
+    return basis, nds
 
 
 def phylogenetic_basis(tree_node):
@@ -33,7 +34,7 @@ def phylogenetic_basis(tree_node):
     Parameters
     ----------
     treenode : skbio.TreeNode
-        Phylogenetic tree.  MUST be a bifurcating tree
+        Phylogenetic tree.  Must be a strictly bifurcating tree
     Returns
     -------
     basis : np.array
@@ -57,6 +58,11 @@ def phylogenetic_basis(tree_node):
     >>> phylogenetic_basis(t)
     array([[ 0.62985567,  0.18507216,  0.18507216],
            [ 0.28399541,  0.57597535,  0.14002925]])
+
+    Notes
+    -----
+    The tree must be strictly bifurcating, meaning that
+    every internal node has exactly 2 children.
     """
     basis, nodes = _balance_basis(tree_node)
     basis = clr_inv(basis)
