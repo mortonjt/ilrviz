@@ -1,3 +1,4 @@
+scikit-bio=0.4.2
 coveralls
 biom-format
 ete3
