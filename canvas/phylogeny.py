@@ -55,7 +55,8 @@ def phylogenetic_basis(tree_node):
     >>> from skbio import TreeNode
     >>> tree = u"((b,c)a, d)root;"
     >>> t = TreeNode.read([tree])
-    >>> phylogenetic_basis(t)
+    >>> basis, nodes = phylogenetic_basis(t)
+    >>> basis
     array([[ 0.62985567,  0.18507216,  0.18507216],
            [ 0.28399541,  0.57597535,  0.14002925]])
 
