@@ -22,6 +22,6 @@ help:
 test:
 	$(TEST_COMMAND)
 pep8:
-	flake8 micronota setup.py
+	flake8 canvas setup.py
 
 all: pep8 test

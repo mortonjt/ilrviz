@@ -8,15 +8,10 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
-import platform
 import re
 import ast
-import sys
 
 from setuptools import find_packages, setup
-from setuptools.extension import Extension
-from setuptools.command.build_ext import build_ext as _build_ext
 
 
 classes = """
