@@ -1,6 +1,3 @@
 scikit-bio
 coveralls
-biom-format
 ete3
-runipy
-ipymd
