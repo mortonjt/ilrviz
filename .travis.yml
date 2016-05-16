@@ -1,27 +1,24 @@
 # Check on http://lint.travis-ci.org/ after modifying it!
 sudo: false
-language: c
-os:
-  - linux
+language: python
 env:
   - PYVERSION="2.7"
 before_install:
-  - echo "$TRAVIS_OS_NAME"
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh; fi
-  - hash -r
+
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
   # Update conda itself
-  - conda update -q conda
+  - conda update --yes conda
   # Useful for debugging any issues with conda
-  - conda info -a
 install:
-  - conda create -n test_env python=$PYVERSION --file ci/conda_requirements.txt
+  - conda create --yes -n test_env python=$PYVERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
   - pip install . --no-deps
 script:
-  - WITH_COVERAGE=TRUE make all
-after_success:
-  - coveralls
+  - make all
 notifications:
   webhooks:
     on_success: change

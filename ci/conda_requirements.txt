@@ -2,8 +2,5 @@ pip
 nose
 pep8
 flake8
-scikit-bio=0.4.2
-matplotlib
-pandas
 IPython<4.0.0
 notebook
