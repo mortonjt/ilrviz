@@ -2,7 +2,5 @@ pip
 nose
 pep8
 flake8
-matplotlib
-pandas
 IPython<4.0.0
 notebook
