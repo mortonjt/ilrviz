@@ -1,13 +1,15 @@
-# ----------------------------------------------------------------------------
-# Copyright (c) 2015--, micronota development team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-# ----------------------------------------------------------------------------
-
 .DEFAULT_GOAL := help
 
-all:
+TEST_COMMAND = nosetests --with-doctest
+
+help:
+	@echo 'Use "make test" to run all the unit tests and docstring tests.'
+	@echo 'Use "make pep8" to validate PEP8 compliance.'
+	@echo 'Use "make html" to create html documentation with sphinx'
+	@echo 'Use "make all" to run all the targets listed above.'
+test:
+	$(TEST_COMMAND)
+pep8:
 	flake8 canvas setup.py
-	nosetests --with-doctest
+
+all: pep8
