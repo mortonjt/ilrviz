@@ -12,4 +12,4 @@ test:
 pep8:
 	flake8 canvas setup.py
 
-all: pep8
+all: test
