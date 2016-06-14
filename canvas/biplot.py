@@ -19,33 +19,39 @@ def make_biplot(sample_df_test,
                 feature_color_dictionary):
 
 
-    fig = plt.subplots(figsize=(10,10))
+    fig, ax = plt.subplots(figsize=(10,10))
     recs = []
     phyla= []
 
     for name, group in sample_df_test.groupby(sample_df_test_metadata[sample_color_category]):
-            plt.plot(np.ravel(group.ix[:,0]), np.ravel(group.ix[:,1]),
-                       marker='o', linestyle='', ms=8,
-                       color = sample_color_dictionary[name],
-                       label = name)
-            legend_1 = plt.legend(title=sample_df_test_metadata.dtypes.index[0], loc=2, numpoints = 1)
-    plt.gca().add_artist(legend_1)
+        ax.plot(np.ravel(group.ix[:,0]), np.ravel(group.ix[:,1]),
+                marker='o', linestyle='', ms=8,
+                color = sample_color_dictionary[name],
+                label = name)
+
+    ax2 = ax.twinx()
+    ax.legend(title=sample_df_test_metadata.dtypes.index[0], loc=2, numpoints = 1)
+    ax2.set_ylim(ax.get_ylim())
 
     for name, group in feature_df_test.groupby(feature_df_test_metadata[feature_color_category]):
-        plt.arrow(0,0,np.asscalar(group.ix[:,0]), np.asscalar(group.ix[:,1]),
-                    width = 0.02, head_width = 0.05,
-                    color=feature_color_dictionary[name])
+        ax2.arrow(0,0,np.asscalar(group.ix[:,0]), np.asscalar(group.ix[:,1]),
+                  width = 0.02, head_width = 0.05,
+                  color=feature_color_dictionary[name])
         recs.append(mpatches.Rectangle((0,0),1,1,fc=feature_color_dictionary[name]))
         phyla.append(name)
-        plt.legend(recs,phyla,loc=1)
+    ax2.legend(recs,phyla,loc=1)
 
-    xmin = min([min(feature_df_test.ix[:,0])])
-    xmax = max([max(feature_df_test.ix[:,0])])
-    ymin = min([min(feature_df_test.ix[:,0])])
-    ymax = max([max(feature_df_test.ix[:,0])])
-    xpad = (xmax - xmin) * 0.5
-    ypad = (ymax - ymin) * 0.5
-    plt.xlim(xmin - xpad, xmax + xpad)
-    plt.ylim(ymin - ypad, ymax + ypad)
+    xmin = min([min(sample_df_test.ix[:,0]), min(feature_df_test.ix[:,0])])
+    xmax = max([max(sample_df_test.ix[:,0]), max(feature_df_test.ix[:,0])])
+    ymin = min([min(sample_df_test.ix[:,1]), min(feature_df_test.ix[:,1])])
+    ymax = max([max(sample_df_test.ix[:,1]), max(feature_df_test.ix[:,1])])
+    xpad = (xmax - xmin) * 0.3
+    ypad = (ymax - ymin) * 0.3
 
-    return fig
+    ax.set_xlim(xmin - xpad, xmax + xpad)
+    ax.set_ylim(ymin - ypad, xmax + ypad)
+    ax2.set_xlim(xmin - xpad, xmax + xpad)
+    ax2.set_ylim(ymin - ypad, xmax + ypad)
+    ax2.set_yticks([])
+
+    return fig, [ax, ax2]
