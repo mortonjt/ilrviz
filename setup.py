@@ -16,6 +16,7 @@ from setuptools import find_packages, setup
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 
+
 class build_ext(_build_ext):
     def finalize_options(self):
         _build_ext.finalize_options(self)
