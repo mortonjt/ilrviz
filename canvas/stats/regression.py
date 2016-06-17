@@ -2,37 +2,7 @@ from __future__ import division
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from skbio.stats.composition import (ilr, ilr_inv,
-                                     inner, perturb_inv)
-from skbio import TreeNode
-from scipy.spatial.distance import euclidean
-
-
-def _rsq(predict, actual):
-    """
-    Calculates coefficient of determination
-
-    Parameters
-    ----------
-    predict : numpy.ndarray, float
-       a matrix of proportions where
-       rows correspond to samples and
-       columns correspond to features.
-    """
-    predict = np.atleast_2d(predict)
-    actual = np.atleast_2d(actual)
-    r, _ = predict.shape
-
-    sst_hat = 0
-    c =  actual.mean(axis=0)
-    for i in range(r):
-        sst_hat += euclidean(actual[i, :], c)
-    ssr_hat = 0
-    for i in range(r):
-        ssr_hat += euclidean(predict[i, :], c)
-
-    return ssr_hat / sst_hat
+from skbio.stats.composition import ilr, ilr_inv
 
 
 def simplicialOLS(Y, X, basis=None, formula=None):
@@ -122,13 +92,11 @@ def simplicialOLS(Y, X, basis=None, formula=None):
     if (len(Y) != Y_index_len or len(X) != X_index_len):
         raise ValueError('`Y` index and `X` index must be consistent.')
 
-
-    predict, b, err, r2 =  _regression(Y.values, X.values, basis=None)
+    predict, b, err, r2 = _regression(Y.values, X.values, basis=None)
     predict = pd.DataFrame(predict, index=Y.index, columns=Y.columns)
 
-    var_ids = map(lambda x: 'b%d'%x, range(b.shape[-1]))
-
-    b = pd.DataFrame(b, index=Y.columns, columns=var_ids)
+    var_ids = map(lambda x: 'b%d' % x, range(X.shape[-1]))
+    b = pd.DataFrame(b, index=var_ids, columns=Y.columns)
     err = pd.DataFrame(err, index=Y.index, columns=Y.columns)
     return predict, b, err, r2
 
