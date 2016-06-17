@@ -88,11 +88,15 @@ def pairwise_aitchison_unifrac(X, tree):
     --------
     >>> from skbio import TreeNode
     >>> import pandas as pd
+    >>> from canvas.kernel.unifrac import pairwise_aitchison_unifrac
     >>> X = pd.DataFrame([[6, 3, 3], [4, 4, 4]],
     ...                  index=['sample1', 'sample2'],
     ...                  columns=['a', 'd', 'e'])
-    >>> t = TreeNode.read(["(a:1,(e:1, d:1)b:1)c;"])
-    >>> res = pairwise_weighted_aitchison(X, t)
+    >>> t = TreeNode.read([u"(a:1,(e:1, d:1)b:1)c;"])
+    >>> res = pairwise_aitchison_unifrac(X, t)
+    >>> res.data
+    array([[ 0.        ,  0.98025814],
+           [ 0.98025814,  0.        ]])
     """
     _X = deepcopy(X)
     sorted_otus = [n.name for n in tree.levelorder() if n.is_tip()]
