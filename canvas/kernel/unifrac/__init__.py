@@ -7,6 +7,6 @@
 # ----------------------------------------------------------------------------
 
 from __future__ import absolute_import, division, print_function
-from .unifrac import aitchison_unifrac, pairwise_aitchison_unifrac
+from canvas.kernel.unifrac import aitchison_unifrac, pairwise_aitchison_unifrac
 
 __all__ = ['aitchison_unifrac', 'pairwise_aitchison_unifrac']
