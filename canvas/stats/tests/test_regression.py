@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 import numpy.testing as npt
-from skbio.stats.composition import power, ilr_inv, ilr
+from skbio.stats.composition import ilr_inv, ilr
 from canvas.stats.regression import simplicialOLS, _regression
 from skbio.util import assert_data_frame_almost_equal
 
@@ -41,6 +41,19 @@ class TestRegression(unittest.TestCase):
         npt.assert_allclose(ilr(b), exp, rtol=0, atol=1e-8)
         npt.assert_allclose(r2, 1.0)
 
+    def test_2D_regression(self):
+        _x = np.linspace(-1, 1, 10)
+        x = np.vstack((np.ones(10), _x)).T
+
+        ilr_y = np.linspace(-10, 10, 10)
+        ilr_y = np.vstack((ilr_y, ilr_y[::-1])).T
+        y = ilr_inv(ilr_y)
+        predict, b, e, r2 = _regression(y, x)
+        exp = np.array([[0., 0.],
+                        [10., -10.]])
+        npt.assert_allclose(ilr(b), exp, rtol=0, atol=1e-8)
+        npt.assert_allclose(r2, 1.0)
+
     def test_simple_simplicialOLS(self):
         _x = np.linspace(-1, 1, 10)
         x = pd.DataFrame(np.vstack((np.ones(10), _x)).T)
@@ -60,33 +73,21 @@ class TestRegression(unittest.TestCase):
         assert_data_frame_almost_equal(exp_b, b)
         assert_data_frame_almost_equal(predict, y)
 
-    def test_2D_simplicialOLS(self):
-        _x = np.linspace(-1, 1, 10)
-        x = np.vstack((np.ones(10), _x)).T
-
-        ilr_y = np.linspace(-10, 10, 10)
-        ilr_y = np.vstack((ilr_y, ilr_y[::-1])).T
-        y = ilr_inv(ilr_y)
-        predict, b, e, r2  = _regression(y, x)
-        exp = np.array([[0., 0.],
-                        [10., -10.]])
-        npt.assert_allclose(ilr(b), exp, rtol=0, atol=1e-8)
-        npt.assert_allclose(r2, 1.0)
-
     def test_2D_simplicialOLS_indexed(self):
         x = pd.DataFrame(
-            [[ 1., -1.],
-             [ 1., -0.77777778],
-             [ 1., -0.55555556],
-             [ 1., -0.33333333],
-             [ 1., -0.11111111],
-             [ 1.,  0.11111111],
-             [ 1.,  0.33333333],
-             [ 1.,  0.55555556],
-             [ 1.,  0.77777778],
-             [ 1.,  1.]],
+            [[1., -1.],
+             [1., -0.77777778],
+             [1., -0.55555556],
+             [1., -0.33333333],
+             [1., -0.11111111],
+             [1., 0.11111111],
+             [1., 0.33333333],
+             [1., 0.55555556],
+             [1., 0.77777778],
+             [1., 1.]],
             columns=['const', 'pH'],
-            index=['a','b','c','d','e','f','g','h','i','j']
+            index=['a', 'b', 'c', 'd', 'e',
+                   'f', 'g', 'h', 'i', 'j'],
         )
         y = pd.DataFrame(
             [[7.21353629e-07, 9.99999275e-01, 4.07450222e-09],
@@ -99,13 +100,15 @@ class TestRegression(unittest.TestCase):
              [5.33634592e-02, 2.06587610e-05, 9.46615882e-01],
              [1.75314085e-02, 2.92968701e-07, 9.82468299e-01],
              [5.61668624e-03, 4.05161995e-09, 9.94383310e-01]],
-            index=['a','b','c','d','e','f','g','h','i','j'],
+            index=['a', 'b', 'c', 'd', 'e',
+                   'f', 'g', 'h', 'i', 'j'],
             columns=['OTU1', 'OTU2', 'OTU3']
         )
         predict, b, e, r2 = simplicialOLS(y, x)
 
         exp_e = pd.DataFrame([[1/3, 1/3, 1/3]]*10,
-                             index=['a','b','c','d','e','f','g','h','i','j'],
+                             index=['a', 'b', 'c', 'd', 'e',
+                                    'f', 'g', 'h', 'i', 'j'],
                              columns=['OTU1', 'OTU2', 'OTU3'])
         exp_b = np.array([[0, 0],
                           [10, -10]])
@@ -116,21 +119,21 @@ class TestRegression(unittest.TestCase):
         assert_data_frame_almost_equal(exp_b, b)
         assert_data_frame_almost_equal(predict, y)
 
-
     def test_2D_simplicialOLS_scrambled(self):
         x = pd.DataFrame(
-            [[ 1.,  1.],
-             [ 1., -0.77777778],
-             [ 1., -0.55555556],
-             [ 1., -0.33333333],
-             [ 1., -0.11111111],
-             [ 1.,  0.11111111],
-             [ 1.,  0.33333333],
-             [ 1.,  0.55555556],
-             [ 1.,  0.77777778],
-             [ 1., -1.]],
+            [[1., 1.],
+             [1., -0.77777778],
+             [1., -0.55555556],
+             [1., -0.33333333],
+             [1., -0.11111111],
+             [1., 0.11111111],
+             [1., 0.33333333],
+             [1., 0.55555556],
+             [1., 0.77777778],
+             [1., -1.]],
             columns=['const', 'pH'],
-            index=['j','b','c','d','e','f','g','h','i','a']
+            index=['j', 'b', 'c', 'd', 'e',
+                   'f', 'g', 'h', 'i', 'a']
         )
         y = pd.DataFrame(
             [[7.21353629e-07, 9.99999275e-01, 4.07450222e-09],
@@ -143,50 +146,54 @@ class TestRegression(unittest.TestCase):
              [5.33634592e-02, 2.06587610e-05, 9.46615882e-01],
              [1.75314085e-02, 2.92968701e-07, 9.82468299e-01],
              [5.61668624e-03, 4.05161995e-09, 9.94383310e-01]],
-            index=['a','b','c','d','e','f','g','h','i','j'],
+            index=['a', 'b', 'c', 'd', 'e',
+                   'f', 'g', 'h', 'i', 'j'],
             columns=['OTU1', 'OTU2', 'OTU3']
         )
         predict, b, e, r2 = simplicialOLS(y, x)
 
         exp_e = pd.DataFrame([[1/3, 1/3, 1/3]]*10,
-                             index=['a','b','c','d','e','f','g','h','i','j'],
+                             index=['a', 'b', 'c', 'd', 'e',
+                                    'f', 'g', 'h', 'i', 'j'],
                              columns=['OTU1', 'OTU2', 'OTU3'])
         exp_b = np.array([[0, 0],
                           [10, -10]])
         exp_b = pd.DataFrame(ilr_inv(exp_b),
                              index=['b0', 'b1'],
                              columns=['OTU1', 'OTU2', 'OTU3'])
-        exp_e = exp_e.reindex(index=['j','b','c','d','e','f','g','h','i','a'])
-        exp_y = y.reindex(index=['j','b','c','d','e','f','g','h','i','a'])
+        exp_e = exp_e.reindex(index=['j', 'b', 'c', 'd', 'e',
+                                     'f', 'g', 'h', 'i', 'a'])
+        exp_y = y.reindex(index=['j', 'b', 'c', 'd', 'e',
+                                 'f', 'g', 'h', 'i', 'a'])
         assert_data_frame_almost_equal(exp_e, e)
         assert_data_frame_almost_equal(exp_b, b)
         assert_data_frame_almost_equal(predict, exp_y)
 
     def test_bad_simplicalOLS_Y(self):
         with self.assertRaises(TypeError):
-            res = simplicialOLS(self.y.values, self.x)
+            simplicialOLS(self.y.values, self.x)
 
     def test_bad_simplicalOLS_X(self):
         with self.assertRaises(TypeError):
-            res = simplicialOLS(self.y, self.x.values)
+            simplicialOLS(self.y, self.x.values)
 
     def test_bad_simplicalOLS_Y_null(self):
         y = self.y
         y.iloc[0, 0] = np.nan
         with self.assertRaises(ValueError):
-            res = simplicialOLS(y, self.x)
+            simplicialOLS(y, self.x)
 
     def test_bad_simplicalOLS_X_null(self):
         x = self.y
         x.iloc[0, 0] = np.nan
         with self.assertRaises(ValueError):
-            res = simplicialOLS(self.y, x)
+            simplicialOLS(self.y, x)
 
     def test_bad_simplicalOLS_Y_zero(self):
         y = self.y
         y.iloc[0, 0] = 0
         with self.assertRaises(ValueError):
-            res = simplicialOLS(y, self.x)
+            simplicialOLS(y, self.x)
 
 
 if __name__ == "__main__":
