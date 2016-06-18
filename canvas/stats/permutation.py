@@ -4,9 +4,10 @@ import pandas as pd
 from time import time
 import copy
 from scipy.stats import ttest_ind, f_oneway
+from scipy._lib._util import check_random_state
 import itertools
 
-def _init_perms(vec, permutations=1000):
+def _init_perms(vec, permutations=1000, random_state=None):
     """
     Creates a permutation matrix
 
@@ -17,6 +18,7 @@ def _init_perms(vec, permutations=1000):
 
     Note: This can only handle binary classes now
     """
+    random_state = check_random_state(random_state)
     c = len(vec)
     copy_vec = copy.deepcopy(vec)
     perms = np.array(np.zeros((c, permutations+1), dtype=vec.dtype))
@@ -26,7 +28,7 @@ def _init_perms(vec, permutations=1000):
         np.random.shuffle(copy_vec)
     return perms
 
-def _init_categorical_perms(cats, permutations=1000):
+def _init_categorical_perms(cats, permutations=1000, random_state=None):
     """
     Creates a reciprocal permutation matrix
 
@@ -37,6 +39,7 @@ def _init_categorical_perms(cats, permutations=1000):
 
     Note: This can only handle binary classes now
     """
+    random_state = check_random_state(random_state)
     c = len(cats)
     num_cats = len(np.unique(cats)) # Number of distinct categories
     copy_cats = copy.deepcopy(cats)
@@ -48,11 +51,10 @@ def _init_categorical_perms(cats, permutations=1000):
     return perms
 
 
-def _init_reciprocal_perms(cats, permutations=1000):
+def _init_reciprocal_perms(cats, permutations=1000, random_state=None):
     """
-    TODO: Make this function use _init_categorical_perms
-
-    Creates a reciprocal permutation matrix
+    Creates a reciprocal permutation matrix.
+    This is to ease the process of division.
 
     cats: numpy.array
        List of binary class assignments
@@ -61,6 +63,7 @@ def _init_reciprocal_perms(cats, permutations=1000):
 
     Note: This can only handle binary classes now
     """
+    random_state = check_random_state(random_state)
     num_cats = len(np.unique(cats)) #number of distinct categories
     c = len(cats)
     copy_cats = copy.deepcopy(cats)
@@ -244,7 +247,10 @@ def _naive_t_permutation_test(mat,cats,permutations=1000):
     #_,pvalues,_,_ = multipletests(pvalues)
     return test_stats, pvalues
 
-def permutative_ttest(mat, cats, permutations=1000):
+
+def permutative_ttest(mat, cats, permutations=1000,
+                      equal_var=False,
+                      random_state=None):
     """ Performs permutative ttest
 
     This module will conduct a mean permutation test using
@@ -258,6 +264,11 @@ def permutative_ttest(mat, cats, permutations=1000):
          Array of categories to run group signficance on
     permutations: int
          Number of permutations to calculate
+    equal_var: bool, optional
+        If false, a Welch's t-test is conducted.  Otherwise, an ordinary t-test
+        is conducted.
+    random_state : int or RandomState, optional
+        Pseudo number generator state used for random sampling.
 
     Return
     ------
@@ -270,7 +281,7 @@ def permutative_ttest(mat, cats, permutations=1000):
     -----
     Only works on binary classes now.
     """
-    perms = _init_categorical_perms(cats, permutations)
+    perms = _init_categorical_perms(cats, permutations, random_state)
     t, p = _np_two_sample_t_statistic(mat, perms)
     return t, p
 
@@ -394,9 +405,9 @@ def _naive_f_permutation_test(mat,cats,permutations=1000):
         test_stats[r] = test_stat
     return test_stats, pvalues
 
-def permutative_anova(mat, cats, perms):
+def permutative_anova(mat, cats, permutations=1000, random_state=None):
     """
-    Calculates a permutative one way F test
+    Calculates a permutative one way anova.
 
     mat: numpy.array
          The contingency table.
@@ -404,9 +415,10 @@ def permutative_anova(mat, cats, perms):
          and rows correspond to  samples
     cat : numpy.array
          Vector of categories.
-    perms: numpy.array
-         Permutative matrix. Columns correspond to permutations
-         of samples rows corespond to features
+    permutations: int
+       Number of permutations for permutation test
+    random_state : int or RandomState, optional
+        Pseudo number generator state used for random sampling.
 
     Returns
     =======

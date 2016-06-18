@@ -84,6 +84,8 @@ class TestPermutation(unittest.TestCase):
 
         np_test.assert_array_almost_equal(nv_stats, np_stats)
 
+    def test_permutative_fisher_test_seed(self):
+        self.assertTrue(False)
 
     def test_large(self):
         ## Large test
@@ -183,6 +185,18 @@ class TestPermutation(unittest.TestCase):
         perms = _init_categorical_perms(cats)
         np_f_stats, pvalues = _np_k_sample_f_statistic(mat, cats, perms)
         np_test.assert_array_almost_equal(nv_f_stats, np_f_stats, 5)
+
+    def test_permutative_ttest_seed(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_equal_var(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_seed(self):
+        self.assertTrue(False)
 
 if __name__ == '__main__':
     unittest.main()
