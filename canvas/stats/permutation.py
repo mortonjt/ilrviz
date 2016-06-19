@@ -248,7 +248,8 @@ def _naive_t_permutation_test(mat,cats,permutations=1000):
     return test_stats, pvalues
 
 
-def permutative_ttest(mat, cats, permutations=1000,
+def permutative_ttest(table, grouping,
+                      permutations=1000,
                       equal_var=False,
                       random_state=None):
     """ Performs permutative ttest
@@ -256,12 +257,15 @@ def permutative_ttest(mat, cats, permutations=1000,
     This module will conduct a mean permutation test using
     numpy matrix algebra.
 
-    mat: numpy.ndarray or scipy.sparse.*
-         columns: features (e.g. OTUs)
-         rows: samples
-         matrix of features
-    cats: numpy array
-         Array of categories to run group signficance on
+    table: pd.DataFrame
+        Contingency table of where columns correspond to features
+        and rows correspond to samples.
+    grouping : pd.Series
+        Vector indicating the assignment of samples to groups.  For example,
+        these could be strings or integers denoting which group a sample
+        belongs to.  It must be the same length as the samples in `table`.
+        The index must be the same on `table` and `grouping` but need not be
+        in the same order.
     permutations: int
          Number of permutations to calculate
     equal_var: bool, optional
@@ -272,6 +276,7 @@ def permutative_ttest(mat, cats, permutations=1000,
 
     Return
     ------
+    pd.Series
     t:
         List of t-test statistics
     p:

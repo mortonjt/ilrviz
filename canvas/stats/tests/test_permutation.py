@@ -132,7 +132,7 @@ class TestPermutation(unittest.TestCase):
 
         np_test.assert_array_almost_equal(np_stats, nv_stats)
 
-
+    # ttests
     def test_t_test_basic1(self):
         np.set_printoptions(precision=3)
         N = 20
@@ -146,6 +146,32 @@ class TestPermutation(unittest.TestCase):
         mat, perms = np.array(mat), np.array(perms)
         np_t_stats, pvalues = _np_two_sample_t_statistic(mat, perms)
         np_test.assert_array_almost_equal(nv_t_stats, np_t_stats, 5)
+
+    def test_permutative_ttest_seed(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_equal_var(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_bad_table(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_bad_grouping(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_inconsistent(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_missing(self):
+        self.assertTrue(False)
+
+    def test_permutative_ttest_size_mismatch(self):
+        self.assertTrue(False)
+
+    def test_ancom_fail_group_unique(self):
+        self.assertTrue(False)
+
+    # ANOVA tests
 
     def test_f_test_basic1(self):
         np.set_printoptions(precision=3)
@@ -186,16 +212,31 @@ class TestPermutation(unittest.TestCase):
         np_f_stats, pvalues = _np_k_sample_f_statistic(mat, cats, perms)
         np_test.assert_array_almost_equal(nv_f_stats, np_f_stats, 5)
 
-    def test_permutative_ttest_seed(self):
-        self.assertTrue(False)
-
-    def test_permutative_ttest_equal_var(self):
-        self.assertTrue(False)
-
     def test_permutative_anova(self):
         self.assertTrue(False)
 
     def test_permutative_anova_seed(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_equal_var(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_bad_table(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_bad_grouping(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_inconsistent(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_missing(self):
+        self.assertTrue(False)
+
+    def test_permutative_anova_size_mismatch(self):
+        self.assertTrue(False)
+
+    def test_ancom_fail_group_unique(self):
         self.assertTrue(False)
 
 if __name__ == '__main__':
