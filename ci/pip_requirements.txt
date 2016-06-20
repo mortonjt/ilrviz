@@ -1,3 +1,2 @@
-scikit-bio==0.4.2
 coveralls
 ete3
