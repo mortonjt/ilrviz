@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 from skbio import DistanceMatrix
 from copy import deepcopy
-from _unifrac import _fast_pairwise_weighted_logaitchison
+from ._unifrac import _fast_pairwise_weighted_logaitchison
 
 
 def aitchison_unifrac(x, y, dm):
