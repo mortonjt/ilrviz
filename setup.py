@@ -29,8 +29,8 @@ USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.c'
 
 extensions = [
-    Extension("canvas/kernel/unifrac._unifrac",
-              ["canvas/kernel/unifrac/_unifrac" + ext])
+    Extension("canvas/kernel/unifrac.__unifrac",
+              ["canvas/kernel/unifrac/__unifrac" + ext])
 ]
 
 if USE_CYTHON:
