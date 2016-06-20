@@ -1,7 +1,6 @@
 from __future__ import division
 import unittest
 from canvas.kernel.unifrac import aitchison_unifrac, pairwise_aitchison_unifrac
-# from canvas.kernel.unifrac._unifrac import _fast_pairwise_weighted_logaitchison
 from canvas.kernel.unifrac._unifrac import _pairwise_aitchison_unifrac_unrolled
 
 import numpy.testing as npt
