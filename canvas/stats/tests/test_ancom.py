@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 
 from unittest import TestCase, main
 import numpy as np
-import numpy.testing as npt
 import pandas.util.testing as pdt
 from numpy.random import normal
 import pandas as pd
@@ -10,9 +9,7 @@ import scipy
 import copy
 from skbio.stats.composition import closure
 from skbio.util import assert_data_frame_almost_equal
-from canvas.stats.ancom import (_holm_bonferroni, _log_compare,
-                                _stationary_log_compare, ancom)
-from skbio.stats.composition import closure
+from canvas.stats.ancom import (_holm_bonferroni, ancom)
 
 
 class AncomTests(TestCase):
@@ -290,11 +287,13 @@ class AncomTests(TestCase):
                                    [220, 210, 9,  10, 10, 10, 10],
                                    [200, 220, 10, 10, 13, 10, 10],
                                    [230, 210, 14, 10, 10, 10, 10]],
-                                  index=['s1','s2','s3','s4',
-                                         's5','s6', 's7','s8'],
-                                  columns=['b1','b2','b3','b4','b5','b6','b7'])
+                                  index=['s1', 's2', 's3', 's4',
+                                         's5', 's6',  's7', 's8'],
+                                  columns=['b1', 'b2', 'b3', 'b4',
+                                           'b5', 'b6', 'b7'])
         test_cats = pd.Series([0, 0, 0, 0, 1, 1, 1, 1],
-                             index=['s1','s2','s3','s4','s5','s6', 's7','s8'])
+                              index=['s1', 's2', 's3', 's4',
+                                     's5', 's6',  's7', 's8'])
 
         np.random.seed(0)
         original_table = copy.deepcopy(test_table)
@@ -309,7 +308,8 @@ class AncomTests(TestCase):
                             'reject': np.array([True, True, False, False,
                                                 False, False, False],
                                                dtype=bool)},
-                           index=['b1','b2','b3','b4','b5','b6','b7'])
+                           index=['b1', 'b2', 'b3', 'b4',
+                                  'b5', 'b6', 'b7'])
         assert_data_frame_almost_equal(result, exp)
 
     def test_permutative_f_scaled(self):
@@ -323,11 +323,12 @@ class AncomTests(TestCase):
                      [220, 210, 9,  10, 10, 10, 10],
                      [200, 220, 10, 10, 13, 10, 10],
                      [230, 210, 14, 10, 10, 10, 10]]),
-            index=['s1','s2','s3','s4',
-                   's5','s6', 's7','s8'],
-            columns=['b1','b2','b3','b4','b5','b6','b7'])
+            index=['s1', 's2', 's3', 's4',
+                   's5', 's6',  's7', 's8'],
+            columns=['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7'])
         test_cats = pd.Series([0, 0, 0, 0, 1, 1, 1, 1],
-                             index=['s1','s2','s3','s4','s5','s6', 's7','s8'])
+                              index=['s1', 's2', 's3', 's4',
+                                     's5', 's6',  's7', 's8'])
 
         np.random.seed(0)
         original_table = copy.deepcopy(test_table)
@@ -342,7 +343,8 @@ class AncomTests(TestCase):
                             'reject': np.array([True, True, False, False,
                                                 False, False, False],
                                                dtype=bool)},
-                           index=['b1','b2','b3','b4','b5','b6','b7'])
+                           index=['b1', 'b2', 'b3', 'b4',
+                                  'b5', 'b6', 'b7'])
         assert_data_frame_almost_equal(result, exp)
 
     def test_ancom_noncontiguous(self):
@@ -540,7 +542,6 @@ class AncomTests(TestCase):
         guessed_p = _holm_bonferroni(p)
         for a, b in zip(corrected_p, guessed_p):
             self.assertAlmostEqual(a, b)
-
 
 if __name__ == "__main__":
     main()

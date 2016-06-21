@@ -1,12 +1,10 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-from time import time
 import copy
 from scipy.stats import ttest_ind, f_oneway
 from scipy._lib._util import check_random_state
 from canvas.util import check_table_grouping
-import itertools
 
 
 def _init_perms(vec, permutations=1000, random_state=None):
@@ -24,11 +22,11 @@ def _init_perms(vec, permutations=1000, random_state=None):
     c = len(vec)
     copy_vec = copy.deepcopy(vec)
     perms = np.array(np.zeros((c, permutations+1), dtype=np.float64))
-    _samp_ones = np.array(np.ones(c), dtype=np.float64).transpose()
     for m in range(permutations+1):
-        perms[:,m] = copy_vec
+        perms[:, m] = copy_vec
         random_state.shuffle(copy_vec)
     return perms
+
 
 def _init_categorical_perms(cats, permutations=1000, random_state=None):
     """
@@ -43,14 +41,16 @@ def _init_categorical_perms(cats, permutations=1000, random_state=None):
     """
     random_state = check_random_state(random_state)
     c = len(cats)
-    num_cats = len(np.unique(cats)) # Number of distinct categories
+    num_cats = len(np.unique(cats))  # Number of distinct categories
     copy_cats = copy.deepcopy(cats)
-    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=np.float64))
+    perms = np.array(np.zeros((c, num_cats*(permutations+1)),
+                              dtype=np.float64))
     for m in range(permutations+1):
         for i in range(num_cats):
-            perms[:,num_cats*m+i] = (copy_cats == i).astype(np.float64)
+            perms[:, num_cats*m+i] = (copy_cats == i).astype(np.float64)
         random_state.shuffle(copy_cats)
     return perms
+
 
 def _init_reciprocal_perms(cats, permutations=1000, random_state=None):
     """
@@ -65,26 +65,23 @@ def _init_reciprocal_perms(cats, permutations=1000, random_state=None):
     Note: This can only handle binary classes now
     """
     random_state = check_random_state(random_state)
-    num_cats = len(np.unique(cats)) #number of distinct categories
+    num_cats = len(np.unique(cats))  # number of distinct categories
     c = len(cats)
     copy_cats = copy.deepcopy(cats)
-    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=np.float64))
+    perms = np.array(np.zeros((c, num_cats*(permutations+1)),
+                              dtype=np.float64))
     _samp_ones = np.array(np.ones(c), dtype=np.float64).transpose()
     for m in range(permutations+1):
 
-        #Perform division to make mean calculation easier
-        perms[:,2*m] = copy_cats / float(copy_cats.sum())
-        perms[:,2*m+1] = (_samp_ones - copy_cats) / float((_samp_ones - copy_cats).sum())
+        # Perform division to make mean calculation easier
+        perms[:, 2*m] = copy_cats / float(copy_cats.sum())
+        perms[:, 2*m+1] = (_samp_ones - copy_cats)
+        perms[:, 2*m+1] /= float((_samp_ones - copy_cats).sum())
         random_state.shuffle(copy_cats)
-
     return perms
 
 
-############################################################
-## Mean permutation tests
-############################################################
-
-def _naive_mean_permutation_test(mat,cats,permutations=1000):
+def _naive_mean_permutation_test(mat, cats, permutations=1000):
     """
     mat: numpy 2-d matrix
          columns: features (e.g. OTUs)
@@ -105,25 +102,25 @@ def _naive_mean_permutation_test(mat,cats,permutations=1000):
     This module will conduct a mean permutation test using
     the naive approach
     """
-    def _mean_test(values,cats):
-        #calculates mean for binary categories
-        return abs(values[cats==0].mean()-values[cats==1].mean())
+    def _mean_test(values, cats):
+        # calculates mean for binary categories
+        return abs(values[cats == 0].mean()-values[cats == 1].mean())
 
-    rows,cols = mat.shape
+    rows, cols = mat.shape
     pvalues = np.zeros(rows)
     test_stats = np.zeros(rows)
     for r in range(rows):
-        values = mat[r,:].transpose()
-        test_stat = _mean_test(values,cats)
+        values = mat[r, :].transpose()
+        test_stat = _mean_test(values, cats)
         perm_stats = np.empty(permutations, dtype=np.float64)
         for i in range(permutations):
             perm_cats = np.random.permutation(cats)
-            perm_stats[i] = _mean_test(values,perm_cats)
+            perm_stats[i] = _mean_test(values, perm_cats)
         p_value = ((perm_stats >= test_stat).sum() + 1.) / (permutations + 1.)
         pvalues[r] = p_value
         test_stats[r] = test_stat
-    #_,pvalues,_,_ = multipletests(pvalues)
     return test_stats, pvalues
+
 
 def fisher_mean(table, grouping, permutations=1000, random_state=None):
     """ Conducts a fishers test on a contingency table.
@@ -154,7 +151,7 @@ def fisher_mean(table, grouping, permutations=1000, random_state=None):
 
     Examples
     --------
-    >>> from canvas.stats.permutation import fisher_mean_test
+    >>> from canvas.stats.permutation import fisher_mean
     >>> import pandas as pd
     >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
     ...                       [9,  11, 12, 10, 10, 10, 10],
@@ -166,16 +163,16 @@ def fisher_mean(table, grouping, permutations=1000, random_state=None):
     ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
     >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
     ...                      index=['s1','s2','s3','s4','s5','s6'])
-    >>> results = fisher_mean_test(table, grouping,
-    ...                            permutations=100, random_state=0)
+    >>> results = fisher_mean(table, grouping,
+    ...                       permutations=100, random_state=0)
     >>> results
                 m    pvalue
-    b1  14.333333  0.108910
-    b2  10.333333  0.108910
+    b1  14.333333  0.108911
+    b2  10.333333  0.108911
     b3   0.333333  1.000000
     b4   0.333333  1.000000
     b5   1.000000  1.000000
-    b6   1.666667  0.108910
+    b6   1.666667  0.108911
     b7   0.333333  1.000000
 
     Notes
@@ -191,6 +188,7 @@ def fisher_mean(table, grouping, permutations=1000, random_state=None):
     res = pd.DataFrame({'m': m, 'pvalue': p}, index=mat.columns)
 
     return res
+
 
 def _np_two_sample_mean_statistic(mat, perms):
     """
@@ -217,34 +215,28 @@ def _np_two_sample_mean_statistic(mat, perms):
     This module will conduct a mean permutation test using
     numpy matrix algebra
     """
-
-    ## Create a permutation matrix
-    num_cats = 2 #number of distinct categories
+    # Create a permutation matrix
+    num_cats = 2  # number of distinct categories
     n_otus, c = perms.shape
     permutations = (c-num_cats) // num_cats
 
-    ## Perform matrix multiplication on data matrix
-    ## and calculate averages
+    # Perform matrix multiplication on data matrix
+    # and calculate averages
     avgs = mat.dot(perms)
-    ## Calculate the mean statistic
+    # Calculate the mean statistic
     idx = np.arange(0, (permutations+1)*num_cats, num_cats)
     mean_stat = abs(avgs[:, idx+1] - avgs[:, idx])
 
-    ## Calculate the p-values
-    cmps =  (mean_stat[:,1:].T >= mean_stat[:,0]).T
-    pvalues = (cmps.sum(axis=1)+1.)/(permutations+1.)
+    # Calculate the p-values
+    cmps = (mean_stat[:, 1:].T >= mean_stat[:, 0]).T
+    pvalues = (cmps.sum(axis=1) + 1.)/(permutations + 1.)
 
-    #_,pvalues,_,_ = multipletests(pvalues)
-    m = np.ravel(mean_stat[:,0])
+    m = np.ravel(mean_stat[:, 0])
     p = np.array(np.ravel(pvalues))
     return m, p
 
 
-
-############################################################
-## T-test permutation tests
-############################################################
-def _naive_t_permutation_test(mat,cats,permutations=1000):
+def _naive_t_permutation_test(mat, cats, permutations=1000):
     """
     mat: numpy 2-d matrix
          columns: features (e.g. OTUs)
@@ -265,25 +257,26 @@ def _naive_t_permutation_test(mat,cats,permutations=1000):
     This module will conduct a mean permutation test using
     the naive approach
     """
-    def _t_test(values,cats):
-        #calculates t statistic for binary categories
-        T, _ =  ttest_ind(values[cats==0], values[cats==1], equal_var = False)
+    def _t_test(values, cats):
+        # calculates t statistic for binary categories
+        T, _ = ttest_ind(values[cats == 0],
+                         values[cats == 1],
+                         equal_var=False)
         return abs(T)
 
-    rows,cols = mat.shape
+    rows, cols = mat.shape
     pvalues = np.zeros(rows)
     test_stats = np.zeros(rows)
     for r in range(rows):
-        values = mat[r,:].transpose()
-        test_stat = _t_test(values,cats)
+        values = mat[r, :].transpose()
+        test_stat = _t_test(values, cats)
         perm_stats = np.empty(permutations, dtype=np.float64)
         for i in range(permutations):
             perm_cats = np.random.permutation(cats)
-            perm_stats[i] = _t_test(values,perm_cats)
+            perm_stats[i] = _t_test(values, perm_cats)
         p_value = ((perm_stats >= test_stat).sum() + 1.) / (permutations + 1.)
         pvalues[r] = p_value
         test_stats[r] = test_stat
-    #_,pvalues,_,_ = multipletests(pvalues)
     return test_stats, pvalues
 
 
@@ -352,6 +345,7 @@ def permutative_ttest(table, grouping,
     res = pd.DataFrame({'t': t, 'pvalue': p}, index=table.columns)
     return res
 
+
 def _np_two_sample_t_statistic(mat, perms, equal_var=False):
     """
     Calculates a permutative Welch's t-statistic
@@ -380,30 +374,29 @@ def _np_two_sample_t_statistic(mat, perms, equal_var=False):
     numpy matrix algebra.
     """
 
-    ## Create a permutation matrix
-    num_cats = 2 # number of distinct categories
+    # Create a permutation matrix
+    num_cats = 2  # number of distinct categories
     n_otus, c = perms.shape
     permutations = (c-num_cats) // num_cats
 
-    ## Perform matrix multiplication on data matrix
-    ## and calculate sums and squared sums
-    _sums  = mat.dot(perms)
-    _sums2 = np.multiply(mat,mat).dot(perms)
+    # Perform matrix multiplication on data matrix
+    # and calculate sums and squared sums
+    _sums = mat.dot(perms)
+    _sums2 = np.multiply(mat, mat).dot(perms)
 
-    ## Calculate means and sample variances
-    tot =  perms.sum(axis=0)
-    _avgs  = _sums / tot
+    # Calculate means and sample variances
+    tot = perms.sum(axis=0)
+    _avgs = _sums / tot
     _avgs2 = _sums2 / tot
-    _vars  = _avgs2 - np.multiply(_avgs, _avgs)
-    _samp_vars =  np.multiply(tot,_vars) / (tot-1)
+    _vars = _avgs2 - np.multiply(_avgs, _avgs)
+    _samp_vars = np.multiply(tot, _vars) / (tot-1)
 
-    ## Calculate the t statistic
-    idx = np.arange(0, (permutations+1)*num_cats, num_cats)
-    # denom  = np.sqrt(_samp_vars[:, idx+1] / tot[:,idx+1]  + _samp_vars[:, idx] / tot[:,idx])
+    # Calculate the t statistic
+    idx = np.arange(0, (permutations + 1) * num_cats, num_cats)
 
     # Calculate the t statistic
     if not equal_var:
-        denom = np.sqrt(np.divide(_samp_vars[:, idx+1], tot[idx+1]) +
+        denom = np.sqrt(np.divide(_samp_vars[:, idx + 1], tot[idx + 1]) +
                         np.divide(_samp_vars[:, idx], tot[idx]))
     else:
         df = tot[idx] + tot[idx+1] - 2
@@ -413,19 +406,15 @@ def _np_two_sample_t_statistic(mat, perms, equal_var=False):
 
     t_stat = np.divide(abs(_avgs[:, idx+1] - _avgs[:, idx]), denom)
 
-    ## Calculate the p-values
-    cmps =  t_stat[:,1:].T >= t_stat[:,0]
-    pvalues = (cmps.sum(axis=0)+1.)/(permutations+1.)
-    t = np.ravel(t_stat[:,0])
+    # Calculate the p-values
+    cmps = t_stat[:, 1:].T >= t_stat[:, 0]
+    pvalues = (cmps.sum(axis=0) + 1.)/(permutations + 1.)
+    t = np.ravel(t_stat[:, 0])
     p = np.array(pvalues)
     return t, p
 
 
-############################################################
-## F-test permutation tests
-############################################################
-
-def _naive_f_permutation_test(mat,cats,permutations=1000):
+def _naive_f_permutation_test(mat, cats, permutations=1000):
     """
     Performs a 1-way ANOVA.
 
@@ -449,27 +438,28 @@ def _naive_f_permutation_test(mat,cats,permutations=1000):
     the naive approach
     """
 
-    def _f_test(values,cats):
-        #calculates t statistic for binary categories
+    def _f_test(values, cats):
+        # calculates t statistic for binary categories
         groups = []
-        groups = [ values[cats==k] for k in set(cats) ]
-        F, _ =  f_oneway(*groups)
+        groups = [values[cats == k] for k in set(cats)]
+        F, _ = f_oneway(*groups)
         return abs(F)
 
-    rows,cols = mat.shape
+    rows, cols = mat.shape
     pvalues = np.zeros(rows)
     test_stats = np.zeros(rows)
     for r in range(rows):
-        values = mat[r,:].transpose()
-        test_stat = _f_test(values,cats)
+        values = mat[r, :].transpose()
+        test_stat = _f_test(values, cats)
         perm_stats = np.empty(permutations, dtype=np.float64)
         for i in range(permutations):
             perm_cats = np.random.permutation(cats)
-            perm_stats[i] = _f_test(values,perm_cats)
+            perm_stats[i] = _f_test(values, perm_cats)
         p_value = ((perm_stats >= test_stat).sum() + 1.) / (permutations + 1.)
         pvalues[r] = p_value
         test_stats[r] = test_stat
     return test_stats, pvalues
+
 
 def permutative_anova(table, grouping, permutations=1000, random_state=None):
     """
@@ -557,8 +547,8 @@ def _np_k_sample_f_statistic(mat, cats, perms):
     numpy matrix algebra
     """
 
-    ## Create a permutation matrix
-    num_cats = len(np.unique(cats)) # Number of distinct categories
+    # Create a permutation matrix
+    num_cats = len(np.unique(cats))  # Number of distinct categories
     n_samp, c = perms.shape
     permutations = (c-num_cats) / num_cats
 
@@ -566,29 +556,27 @@ def _np_k_sample_f_statistic(mat, cats, perms):
 
     S = mat.sum(axis=1)
     SS = mat2.sum(axis=1)
-    sstot = SS - np.multiply(S,S) / float(n_samp)
-    #Create index to sum the ssE together
+    sstot = SS - np.multiply(S, S) / float(n_samp)
+    # Create index to sum the ssE together
     _sum_idx = _init_categorical_perms(
-        np.arange((permutations+1)*num_cats,dtype=np.int32) // num_cats,
+        np.arange((permutations + 1) * num_cats, dtype=np.int32) // num_cats,
         permutations=0)
 
-
-    ## Perform matrix multiplication on data matrix
-    ## and calculate sums and squared sums and sum of squares
-    _sums  = np.dot(mat, perms)
+    # Perform matrix multiplication on data matrix
+    # and calculate sums and squared sums and sum of squares
+    _sums = np.dot(mat, perms)
     _sums2 = np.dot(np.multiply(mat, mat), perms)
-    tot =  perms.sum(axis=0)
-    ss = _sums2 - np.multiply(_sums,_sums)/tot
+    tot = perms.sum(axis=0)
+    ss = _sums2 - np.multiply(_sums, _sums)/tot
     sserr = np.dot(ss, _sum_idx)
     sstrt = (sstot - sserr.T).T
 
     dftrt = num_cats-1
-    dferr = np.dot(tot,_sum_idx) - num_cats
+    dferr = np.dot(tot, _sum_idx) - num_cats
     f_stat = (sstrt / dftrt) / (sserr / dferr)
 
-    cmps =  f_stat[:,1:].T >= f_stat[:,0]
-    pvalues = (cmps.sum(axis=0)+1.) / (permutations+1.)
+    cmps = f_stat[:, 1:].T >= f_stat[:, 0]
+    pvalues = (cmps.sum(axis=0) + 1.) / (permutations + 1.)
     f = np.array(np.ravel(f_stat[:, 0]))
     p = np.array(np.ravel(pvalues))
     return f, p
-

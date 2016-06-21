@@ -1,16 +1,9 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-from time import time
-import copy
 
-import os, sys, site
-import numpy as np
-from numpy import random, array
-from pandas import DataFrame, Series
 import scipy
 
-from math import log
 from canvas.stats.permutation import (_init_categorical_perms,
                                       _np_k_sample_f_statistic)
 
@@ -112,7 +105,7 @@ def ancom(table, grouping,
     Examples
     --------
     First import all of the necessary modules:
-    >>> from ancomP.stats.ancom import ancom
+    >>> from canvas.stats.ancom import ancom
     >>> import pandas as pd
     Now let's load in a pd.DataFrame with 6 samples and 7 unknown bacteria:
     >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
@@ -132,16 +125,16 @@ def ancom(table, grouping,
     Now run ``ancom`` and see if there are any features that have any
     significant differences between the treatment and the control.
     >>> results = ancom(table, grouping,
-    ...                 significance_test='permutative_anova',
+    ...                 significance_test='permutative-anova',
     ...                 permutations=100)
     >>> results['W']
     b1    0
-    b2    4
-    b3    1
-    b4    1
-    b5    1
+    b2    0
+    b3    0
+    b4    0
+    b5    0
     b6    0
-    b7    1
+    b7    0
     Name: W, dtype: int64
     The W-statistic is the number of features that a single feature is tested
     to be significantly different against.  In this scenario, `b2` was detected
@@ -150,7 +143,7 @@ def ancom(table, grouping,
     at the results from the hypothesis test:
     >>> results['reject']
     b1    False
-    b2     True
+    b2    False
     b3    False
     b4    False
     b5    False
@@ -227,7 +220,8 @@ def ancom(table, grouping,
         _logratio_mat = _stationary_log_compare(mat.values, cats.values,
                                                 permutations=permutations)
     else:
-        _logratio_mat = _log_compare(mat.values, cats.values, significance_test)
+        _logratio_mat = _log_compare(mat.values, cats.values,
+                                     significance_test)
     logratio_mat = _logratio_mat + _logratio_mat.T
 
     # Multiple comparisons
@@ -324,7 +318,7 @@ def _log_compare(mat, cats,
     return log_ratio
 
 
-def _stationary_log_compare(mat,cats,permutations=1000):
+def _stationary_log_compare(mat, cats, permutations=1000):
     """
     Calculates pairwise log ratios between all otus
     and performs a permutation tests to determine if there is a
@@ -345,12 +339,11 @@ def _stationary_log_compare(mat,cats,permutations=1000):
     """
     r, c = mat.shape
     log_mat = np.log(mat)
-    log_ratio = np.zeros((c,c),dtype=np.float64)
+    log_ratio = np.zeros((c, c), dtype=np.float64)
     perms = _init_categorical_perms(cats, permutations)
     perms = perms.astype(np.float64)
-    _ones = np.matrix(np.ones(c,dtype=np.float64)).transpose()
     for i in range(c-1):
         ratio = log_mat[:, i] - log_mat[:, i+1:].T
-        m, p  = _np_k_sample_f_statistic(ratio, cats, perms)
-        log_ratio[i,i+1:] = p
+        m, p = _np_k_sample_f_statistic(ratio, cats, perms)
+        log_ratio[i, i+1:] = p
     return log_ratio
