@@ -23,11 +23,11 @@ def _init_perms(vec, permutations=1000, random_state=None):
     random_state = check_random_state(random_state)
     c = len(vec)
     copy_vec = copy.deepcopy(vec)
-    perms = np.array(np.zeros((c, permutations+1), dtype=vec.dtype))
-    _samp_ones = np.array(np.ones(c), dtype=vec.dtype).transpose()
+    perms = np.array(np.zeros((c, permutations+1), dtype=np.float64))
+    _samp_ones = np.array(np.ones(c), dtype=np.float64).transpose()
     for m in range(permutations+1):
         perms[:,m] = copy_vec
-        np.random.shuffle(copy_vec)
+        random_state.shuffle(copy_vec)
     return perms
 
 def _init_categorical_perms(cats, permutations=1000, random_state=None):
@@ -45,13 +45,12 @@ def _init_categorical_perms(cats, permutations=1000, random_state=None):
     c = len(cats)
     num_cats = len(np.unique(cats)) # Number of distinct categories
     copy_cats = copy.deepcopy(cats)
-    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=cats.dtype))
+    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=np.float64))
     for m in range(permutations+1):
         for i in range(num_cats):
-            perms[:,num_cats*m+i] = (copy_cats == i).astype(cats.dtype)
-        np.random.shuffle(copy_cats)
+            perms[:,num_cats*m+i] = (copy_cats == i).astype(np.float64)
+        random_state.shuffle(copy_cats)
     return perms
-
 
 def _init_reciprocal_perms(cats, permutations=1000, random_state=None):
     """
@@ -69,13 +68,15 @@ def _init_reciprocal_perms(cats, permutations=1000, random_state=None):
     num_cats = len(np.unique(cats)) #number of distinct categories
     c = len(cats)
     copy_cats = copy.deepcopy(cats)
-    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=cats.dtype))
-    _samp_ones = np.array(np.ones(c), dtype=cats.dtype).transpose()
+    perms = np.array(np.zeros((c, num_cats*(permutations+1)), dtype=np.float64))
+    _samp_ones = np.array(np.ones(c), dtype=np.float64).transpose()
     for m in range(permutations+1):
+
         #Perform division to make mean calculation easier
         perms[:,2*m] = copy_cats / float(copy_cats.sum())
         perms[:,2*m+1] = (_samp_ones - copy_cats) / float((_samp_ones - copy_cats).sum())
-        np.random.shuffle(copy_cats)
+        random_state.shuffle(copy_cats)
+
     return perms
 
 
@@ -124,36 +125,72 @@ def _naive_mean_permutation_test(mat,cats,permutations=1000):
     #_,pvalues,_,_ = multipletests(pvalues)
     return test_stats, pvalues
 
-def fisher_test(table, grouping, permutations=1000):
-    """ Performs a fishers test on a contingency table.
+def fisher_mean(table, grouping, permutations=1000, random_state=None):
+    """ Conducts a fishers test on a contingency table.
 
     This module will conduct a mean permutation test using
     numpy matrix algebra.
 
-    mat: numpy.ndarray or scipy.sparse.*
-         columns: features (e.g. OTUs)
-         rows: samples
-         matrix of features
-    grouping: numpy array
-         Array of categories to run group signficance on
+    table: pd.DataFrame
+        Contingency table of where columns correspond to features
+        and rows correspond to samples.
+    grouping : pd.Series
+        Vector indicating the assignment of samples to groups.  For example,
+        these could be strings or integers denoting which group a sample
+        belongs to.  It must be the same length as the samples in `table`.
+        The index must be the same on `table` and `grouping` but need not be
+        in the same order.
     permutations: int
          Number of permutations to calculate
+    random_state : int or RandomState, optional
+        Pseudo number generator state used for random sampling.
 
     Return
     ------
-    m:
-        List of mean test statistics
-    p:
-        List of corrected p-values
+    pd.DataFrame
+        A table of features, their t-statistics and p-values
+        `"m"` is the t-statistic.
+        `"pvalue"` is the p-value calculated from the permutation test.
+
+    Examples
+    --------
+    >>> from canvas.stats.permutation import fisher_mean_test
+    >>> import pandas as pd
+    >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
+    ...                       [9,  11, 12, 10, 10, 10, 10],
+    ...                       [1,  11, 10, 11, 10, 5,  9],
+    ...                       [22, 21, 9,  10, 10, 10, 10],
+    ...                       [20, 22, 10, 10, 13, 10, 10],
+    ...                       [23, 21, 14, 10, 10, 10, 10]],
+    ...                      index=['s1','s2','s3','s4','s5','s6'],
+    ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
+    >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
+    ...                      index=['s1','s2','s3','s4','s5','s6'])
+    >>> results = fisher_mean_test(table, grouping,
+    ...                            permutations=100, random_state=0)
+    >>> results
+                m    pvalue
+    b1  14.333333  0.108910
+    b2  10.333333  0.108910
+    b3   0.333333  1.000000
+    b4   0.333333  1.000000
+    b5   1.000000  1.000000
+    b6   1.666667  0.108910
+    b7   0.333333  1.000000
 
     Notes
     -----
     Only works on binary classes.
     """
-    perms = _init_reciprocal_perms(cats, permutations)
-    mat, _ = check_table_grouping(table, grouping)
-    m, p = _np_two_sample_mean_statistic(mat, perms)
-    return m, p
+
+    mat, cats = check_table_grouping(table, grouping)
+    perms = _init_reciprocal_perms(cats.values, permutations,
+                                   random_state=random_state)
+
+    m, p = _np_two_sample_mean_statistic(mat.values.T, perms)
+    res = pd.DataFrame({'m': m, 'pvalue': p}, index=mat.columns)
+
+    return res
 
 def _np_two_sample_mean_statistic(mat, perms):
     """
@@ -258,10 +295,10 @@ def permutative_ttest(table, grouping,
 
     This module will conduct a mean permutation test using
     numpy matrix algebra.
-
-    table: pd.DataFrame
-        Contingency table of where columns correspond to features
-        and rows correspond to samples.
+    table : pd.DataFrame
+        A 2D matrix of strictly positive values (i.e. counts or proportions)
+        where the rows correspond to samples and the columns correspond to
+        features.
     grouping : pd.Series
         Vector indicating the assignment of samples to groups.  For example,
         these could be strings or integers denoting which group a sample
@@ -280,14 +317,39 @@ def permutative_ttest(table, grouping,
     ------
     pd.DataFrame
         A table of features, their t-statistics and p-values
-        `"T"` is the t-statistic.
+        `"t"` is the t-statistic.
         `"pvalue"` is the p-value calculated from the permutation test.
 
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from canvas.stats.permutation import permutative_ttest
+    >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
+    ...                       [9,  11, 12, 10, 10, 10, 10],
+    ...                       [1,  11, 10, 11, 10, 5,  9],
+    ...                       [22, 21, 9,  10, 10, 10, 10],
+    ...                       [20, 22, 10, 10, 13, 10, 10],
+    ...                       [23, 21, 14, 10, 10, 10, 10]],
+    ...                      index=['s1','s2','s3','s4','s5','s6'],
+    ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
+    >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
+    ...                      index=['s1','s2','s3','s4','s5','s6'])
+    >>> results = permutative_ttest(table, grouping,
+    ...                       permutations=100, random_state=0)
+    >>> results
+          pvalue          t
+    b1  0.108911   4.216497
+    b2  0.108911  31.000000
+    b3  1.000000   0.200000
+    b4  1.000000   1.000000
+    b5  1.000000   1.000000
+    b6  1.000000   1.000000
+    b7  1.000000   1.000000
     """
     mat, cats = check_table_grouping(table, grouping)
     perms = _init_categorical_perms(cats, permutations, random_state)
-    t, p = _np_two_sample_t_statistic(mat, perms)
-    res = pd.DataFrame({'T': t, 'pvalue': p})
+    t, p = _np_two_sample_t_statistic(mat.T.values, perms)
+    res = pd.DataFrame({'t': t, 'pvalue': p}, index=table.columns)
     return res
 
 def _np_two_sample_t_statistic(mat, perms, equal_var=False):
@@ -353,8 +415,7 @@ def _np_two_sample_t_statistic(mat, perms, equal_var=False):
 
     ## Calculate the p-values
     cmps =  t_stat[:,1:].T >= t_stat[:,0]
-    pvalues = (cmps.sum(axis=1)+1.)/(permutations+1.)
-
+    pvalues = (cmps.sum(axis=0)+1.)/(permutations+1.)
     t = np.ravel(t_stat[:,0])
     p = np.array(pvalues)
     return t, p
@@ -410,16 +471,19 @@ def _naive_f_permutation_test(mat,cats,permutations=1000):
         test_stats[r] = test_stat
     return test_stats, pvalues
 
-def permutative_anova(mat, cats, permutations=1000, random_state=None):
+def permutative_anova(table, grouping, permutations=1000, random_state=None):
     """
     Calculates a permutative one way anova.
-
-    mat: numpy.array
-         The contingency table.
-         Columns correspond to features (e.g. OTUs)
-         and rows correspond to  samples
-    cat : numpy.array
-         Vector of categories.
+    table : pd.DataFrame
+        A 2D matrix of strictly positive values (i.e. counts or proportions)
+        where the rows correspond to samples and the columns correspond to
+        features.
+    grouping : pd.Series
+        Vector indicating the assignment of samples to groups.  For example,
+        these could be strings or integers denoting which group a sample
+        belongs to.  It must be the same length as the samples in `table`.
+        The index must be the same on `table` and `grouping` but need not be
+        in the same order.
     permutations: int
        Number of permutations for permutation test
     random_state : int or RandomState, optional
@@ -427,18 +491,44 @@ def permutative_anova(mat, cats, permutations=1000, random_state=None):
 
     Returns
     =======
-    test_stats:
-        List of f-test statistics
-    pvalues:
-        List of p-values
+    pd.DataFrame
+        A table of features, their t-statistics and p-values
+        `"f"` is the f-statistic.
+        `"pvalue"` is the p-value calculated from the permutation test.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from canvas.stats.permutation import permutative_anova
+    >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
+    ...                       [9,  11, 12, 10, 10, 10, 10],
+    ...                       [1,  11, 10, 11, 10, 5,  9],
+    ...                       [22, 21, 9,  10, 10, 10, 10],
+    ...                       [20, 22, 10, 10, 13, 10, 10],
+    ...                       [23, 21, 14, 10, 10, 10, 10]],
+    ...                      index=['s1','s2','s3','s4','s5','s6'],
+    ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
+    >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
+    ...                      index=['s1','s2','s3','s4','s5','s6'])
+    >>> results = permutative_anova(table, grouping,
+    ...                       permutations=100, random_state=0)
+    >>> results
+                 f    pvalue
+    b1   17.778846  0.108911
+    b2  961.000000  0.108911
+    b3    0.040000  1.000000
+    b4    1.000000  1.000000
+    b5    1.000000  1.000000
+    b6    1.000000  1.000000
+    b7    1.000000  1.000000
 
     This module will conduct a mean permutation test using
     numpy matrix algebra.
     """
     mat, cats = check_table_grouping(table, grouping)
     perms = _init_categorical_perms(cats, permutations, random_state)
-    f, p = _np_k_sample_f_statistic(mat, perms)
-    res = pd.DataFrame({'F': t, 'pvalue': p})
+    f, p = _np_k_sample_f_statistic(mat.values.T, cats, perms)
+    res = pd.DataFrame({'f': f, 'pvalue': p}, index=table.columns)
     return res
 
 
