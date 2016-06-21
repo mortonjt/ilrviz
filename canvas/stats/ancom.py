@@ -118,33 +118,36 @@ def ancom(table, grouping,
     >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
     ...                       [9,  11, 12, 10, 10, 10, 10],
     ...                       [1,  11, 10, 11, 10, 5,  9],
-    ...                       [22, 21, 9,  10, 10, 10, 10],
-    ...                       [20, 22, 10, 10, 13, 10, 10],
-    ...                       [23, 21, 14, 10, 10, 10, 10]],
-    ...                      index=['s1','s2','s3','s4','s5','s6'],
+    ...                       [2,  11, 10, 11, 10, 5,  9],
+    ...                       [221, 210, 9,  10, 10, 10, 10],
+    ...                       [220, 210, 9,  10, 10, 10, 10],
+    ...                       [200, 220, 10, 10, 13, 10, 10],
+    ...                       [230, 210, 14, 10, 10, 10, 10]],
+    ...                      index=['s1','s2','s3','s4','s5','s6', 's7','s8'],
     ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
 
     Then create a grouping vector.  In this scenario, there
     are only two classes, and suppose these classes correspond to the
     treatment due to a drug and a control.  The first three samples
     are controls and the last three samples are treatments.
-    >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
-    ...                      index=['s1','s2','s3','s4','s5','s6'])
+
+    >>> grouping = pd.Series([0, 0, 0, 0, 1, 1, 1, 1],
+    ...                      index=['s1','s2','s3','s4','s5','s6', 's7','s8'])
 
     Now run ``ancom`` and see if there are any features that have any
     significant differences between the treatment and the control.
 
     >>> results = ancom(table, grouping,
     ...                 significance_test='permutative-anova',
-    ...                 permutations=100, random_state=0)
+    ...                 permutations=1000, random_state=0)
     >>> results['W']
-    b1    0
-    b2    0
-    b3    0
-    b4    0
-    b5    0
-    b6    0
-    b7    0
+    b1    5
+    b2    5
+    b3    2
+    b4    2
+    b5    2
+    b6    2
+    b7    2
     Name: W, dtype: int64
 
     The W-statistic is the number of features that a single feature is tested
@@ -154,8 +157,8 @@ def ancom(table, grouping,
     at the results from the hypothesis test:
 
     >>> results['reject']
-    b1    False
-    b2    False
+    b1     True
+    b2     True
     b3    False
     b4    False
     b5    False
@@ -353,7 +356,8 @@ def _stationary_log_compare(mat, cats, permutations=1000, random_state=None):
     r, c = mat.shape
     log_mat = np.log(mat)
     log_ratio = np.zeros((c, c), dtype=np.float64)
-    perms = _init_categorical_perms(cats, permutations, random_state=random_state)
+    perms = _init_categorical_perms(cats, permutations,
+                                    random_state=random_state)
     perms = perms.astype(np.float64)
     for i in range(c-1):
         ratio = log_mat[:, i] - log_mat[:, i+1:].T
