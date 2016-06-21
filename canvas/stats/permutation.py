@@ -5,7 +5,9 @@ from time import time
 import copy
 from scipy.stats import ttest_ind, f_oneway
 from scipy._lib._util import check_random_state
+from canvas.util import check_table_grouping
 import itertools
+
 
 def _init_perms(vec, permutations=1000, random_state=None):
     """
@@ -122,7 +124,7 @@ def _naive_mean_permutation_test(mat,cats,permutations=1000):
     #_,pvalues,_,_ = multipletests(pvalues)
     return test_stats, pvalues
 
-def fisher_test(mat, cats, permutations=1000):
+def fisher_test(table, grouping, permutations=1000):
     """ Performs a fishers test on a contingency table.
 
     This module will conduct a mean permutation test using
@@ -132,7 +134,7 @@ def fisher_test(mat, cats, permutations=1000):
          columns: features (e.g. OTUs)
          rows: samples
          matrix of features
-    cats: numpy array
+    grouping: numpy array
          Array of categories to run group signficance on
     permutations: int
          Number of permutations to calculate
@@ -149,6 +151,7 @@ def fisher_test(mat, cats, permutations=1000):
     Only works on binary classes.
     """
     perms = _init_reciprocal_perms(cats, permutations)
+    mat, _ = check_table_grouping(table, grouping)
     m, p = _np_two_sample_mean_statistic(mat, perms)
     return m, p
 
@@ -164,7 +167,6 @@ def _np_two_sample_mean_statistic(mat, perms):
          Permutative matrix.
          Columns correspond to  permutations of samples
          rows corresponds to features
-
 
     Note: only works on binary classes now
 
@@ -267,7 +269,7 @@ def permutative_ttest(table, grouping,
         The index must be the same on `table` and `grouping` but need not be
         in the same order.
     permutations: int
-         Number of permutations to calculate
+         Number of permutations to calculate.
     equal_var: bool, optional
         If false, a Welch's t-test is conducted.  Otherwise, an ordinary t-test
         is conducted.
@@ -276,19 +278,17 @@ def permutative_ttest(table, grouping,
 
     Return
     ------
-    pd.Series
-    t:
-        List of t-test statistics
-    p:
-        List of corrected p-values
+    pd.DataFrame
+        A table of features, their t-statistics and p-values
+        `"T"` is the t-statistic.
+        `"pvalue"` is the p-value calculated from the permutation test.
 
-    Notes
-    -----
-    Only works on binary classes now.
     """
+    mat, cats = check_table_grouping(table, grouping)
     perms = _init_categorical_perms(cats, permutations, random_state)
     t, p = _np_two_sample_t_statistic(mat, perms)
-    return t, p
+    res = pd.DataFrame({'T': t, 'pvalue': p})
+    return res
 
 def _np_two_sample_t_statistic(mat, perms, equal_var=False):
     """
@@ -435,7 +435,12 @@ def permutative_anova(mat, cats, permutations=1000, random_state=None):
     This module will conduct a mean permutation test using
     numpy matrix algebra.
     """
-    pass
+    mat, cats = check_table_grouping(table, grouping)
+    perms = _init_categorical_perms(cats, permutations, random_state)
+    f, p = _np_k_sample_f_statistic(mat, perms)
+    res = pd.DataFrame({'F': t, 'pvalue': p})
+    return res
+
 
 def _np_k_sample_f_statistic(mat, cats, perms):
     """

@@ -17,7 +17,6 @@ from skbio.stats.composition import closure
 
 class AncomTests(TestCase):
     def setUp(self):
-        np.set_printoptions(precision=3)
         # Basic count data with 2 groupings
         self.table1 = pd.DataFrame([
             [10, 10, 10, 20, 20, 20],
@@ -283,40 +282,67 @@ class AncomTests(TestCase):
         assert_data_frame_almost_equal(result, exp)
 
     def test_permutative_f(self):
-        test_table = pd.DataFrame(self.table1)
+        test_table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
+                                   [9,  11, 12, 10, 10, 10, 10],
+                                   [1,  11, 10, 11, 10, 5,  9],
+                                   [2,  11, 10, 11, 10, 5,  9],
+                                   [221, 210, 9,  10, 10, 10, 10],
+                                   [220, 210, 9,  10, 10, 10, 10],
+                                   [200, 220, 10, 10, 13, 10, 10],
+                                   [230, 210, 14, 10, 10, 10, 10]],
+                                  index=['s1','s2','s3','s4',
+                                         's5','s6', 's7','s8'],
+                                  columns=['b1','b2','b3','b4','b5','b6','b7'])
+        test_cats = pd.Series([0, 0, 0, 0, 1, 1, 1, 1],
+                             index=['s1','s2','s3','s4','s5','s6', 's7','s8'])
+
         np.random.seed(0)
         original_table = copy.deepcopy(test_table)
-        test_cats = pd.Series(self.cats1)
         original_cats = copy.deepcopy(test_cats)
-        result = ancom(test_table, test_cats, significance_test='permutative-anova')
+        result = ancom(test_table, test_cats,
+                       significance_test='permutative-anova')
         # Test to make sure that the input table hasn't be altered
         assert_data_frame_almost_equal(original_table, test_table)
         # Test to make sure that the input table hasn't be altered
         pdt.assert_series_equal(original_cats, test_cats)
-        exp = pd.DataFrame({'W': np.array([6, 6, 3, 3, 2, 2, 2]),
+        exp = pd.DataFrame({'W': np.array([5, 5, 2, 2, 2, 2, 2]),
                             'reject': np.array([True, True, False, False,
                                                 False, False, False],
-                                               dtype=bool)})
-
+                                               dtype=bool)},
+                           index=['b1','b2','b3','b4','b5','b6','b7'])
         assert_data_frame_almost_equal(result, exp)
 
     def test_permutative_f_scaled(self):
-        test_table = pd.DataFrame(self.table1)
-        test_table = test_table.astype(np.float64)
+
+        test_table = pd.DataFrame(
+            closure([[12, 11, 10, 10, 10, 10, 10],
+                     [9,  11, 12, 10, 10, 10, 10],
+                     [1,  11, 10, 11, 10, 5,  9],
+                     [2,  11, 10, 11, 10, 5,  9],
+                     [221, 210, 9,  10, 10, 10, 10],
+                     [220, 210, 9,  10, 10, 10, 10],
+                     [200, 220, 10, 10, 13, 10, 10],
+                     [230, 210, 14, 10, 10, 10, 10]]),
+            index=['s1','s2','s3','s4',
+                   's5','s6', 's7','s8'],
+            columns=['b1','b2','b3','b4','b5','b6','b7'])
+        test_cats = pd.Series([0, 0, 0, 0, 1, 1, 1, 1],
+                             index=['s1','s2','s3','s4','s5','s6', 's7','s8'])
+
         np.random.seed(0)
         original_table = copy.deepcopy(test_table)
-        test_cats = pd.Series(self.cats1)
         original_cats = copy.deepcopy(test_cats)
-        result = ancom(test_table, test_cats, significance_test='permutative-anova')
+        result = ancom(test_table, test_cats,
+                       significance_test='permutative-anova')
         # Test to make sure that the input table hasn't be altered
         assert_data_frame_almost_equal(original_table, test_table)
         # Test to make sure that the input table hasn't be altered
         pdt.assert_series_equal(original_cats, test_cats)
-        exp = pd.DataFrame({'W': np.array([6, 6, 3, 3, 2, 2, 2]),
+        exp = pd.DataFrame({'W': np.array([5, 5, 2, 2, 2, 2, 2]),
                             'reject': np.array([True, True, False, False,
                                                 False, False, False],
-                                               dtype=bool)})
-
+                                               dtype=bool)},
+                           index=['b1','b2','b3','b4','b5','b6','b7'])
         assert_data_frame_almost_equal(result, exp)
 
     def test_ancom_noncontiguous(self):

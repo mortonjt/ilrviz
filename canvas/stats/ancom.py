@@ -11,7 +11,7 @@ from pandas import DataFrame, Series
 import scipy
 
 from math import log
-from ancomP.stats.permutation import (_init_categorical_perms,
+from canvas.stats.permutation import (_init_categorical_perms,
                                       _np_k_sample_f_statistic)
 
 
@@ -347,14 +347,10 @@ def _stationary_log_compare(mat,cats,permutations=1000):
     log_mat = np.log(mat)
     log_ratio = np.zeros((c,c),dtype=np.float64)
     perms = _init_categorical_perms(cats, permutations)
-    perms = perms.astype(mat.dtype)
-    _ones = np.matrix(np.ones(c,dtype=mat.dtype)).transpose()
+    perms = perms.astype(np.float64)
+    _ones = np.matrix(np.ones(c,dtype=np.float64)).transpose()
     for i in range(c-1):
-        ratio =  log_mat[:, i] - log_mat[:, i+1:].T
+        ratio = log_mat[:, i] - log_mat[:, i+1:].T
         m, p  = _np_k_sample_f_statistic(ratio, cats, perms)
         log_ratio[i,i+1:] = p
     return log_ratio
-
-
-if __name__=="__main__":
-    pass
