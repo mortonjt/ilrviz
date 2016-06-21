@@ -237,7 +237,7 @@ class TestPermutation(unittest.TestCase):
         grouping = pd.Series(['a']*((3*N)//4)+['b']*(N//4))
         nv_t_stats, pvalues = _naive_t_permutation_test(mat, cats)
         res = permutative_ttest(table, grouping)
-        np_t_stats, = res.t
+        np_t_stats = res.t
 
         np_test.assert_array_almost_equal(nv_t_stats, np_t_stats, 5)
 

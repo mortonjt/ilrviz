@@ -13,7 +13,8 @@ def ancom(table, grouping,
           tau=0.02,
           theta=0.1,
           multiple_comparisons_correction=None,
-          significance_test=None, permutations=1000):
+          significance_test=None, permutations=1000,
+          random_state=None):
     r""" Performs a differential abundance test using ANCOM.
     This is done by calculating pairwise log ratios between all features
     and performing a significance test to determine if there is a significant
@@ -61,6 +62,8 @@ def ancom(table, grouping,
         p-value. By default ``scipy.stats.f_oneway`` is used.
     permutations : int
         The number of permutations run if a permutation test is specified.
+    random_state : int or RandomState, optional
+        Pseudo number generator state used for random sampling.
 
     Returns
     -------
@@ -70,6 +73,7 @@ def ancom(table, grouping,
         `"W"` is the W-statistic, or number of features that a single feature
         is tested to be significantly different against.
         `"reject"` indicates if feature is significantly different or not.
+
     See Also
     --------
     multiplicative_replacement
@@ -77,6 +81,7 @@ def ancom(table, grouping,
     scipy.stats.f_oneway
     scipy.stats.wilcoxon
     scipy.stats.kruskal
+
     Notes
     -----
     The developers of this method recommend the following significance tests
@@ -107,7 +112,9 @@ def ancom(table, grouping,
     First import all of the necessary modules:
     >>> from canvas.stats.ancom import ancom
     >>> import pandas as pd
+
     Now let's load in a pd.DataFrame with 6 samples and 7 unknown bacteria:
+
     >>> table = pd.DataFrame([[12, 11, 10, 10, 10, 10, 10],
     ...                       [9,  11, 12, 10, 10, 10, 10],
     ...                       [1,  11, 10, 11, 10, 5,  9],
@@ -116,17 +123,20 @@ def ancom(table, grouping,
     ...                       [23, 21, 14, 10, 10, 10, 10]],
     ...                      index=['s1','s2','s3','s4','s5','s6'],
     ...                      columns=['b1','b2','b3','b4','b5','b6','b7'])
+
     Then create a grouping vector.  In this scenario, there
     are only two classes, and suppose these classes correspond to the
     treatment due to a drug and a control.  The first three samples
     are controls and the last three samples are treatments.
     >>> grouping = pd.Series([0, 0, 0, 1, 1, 1],
     ...                      index=['s1','s2','s3','s4','s5','s6'])
+
     Now run ``ancom`` and see if there are any features that have any
     significant differences between the treatment and the control.
+
     >>> results = ancom(table, grouping,
     ...                 significance_test='permutative-anova',
-    ...                 permutations=100)
+    ...                 permutations=100, random_state=0)
     >>> results['W']
     b1    0
     b2    0
@@ -136,11 +146,13 @@ def ancom(table, grouping,
     b6    0
     b7    0
     Name: W, dtype: int64
+
     The W-statistic is the number of features that a single feature is tested
     to be significantly different against.  In this scenario, `b2` was detected
     to have significantly different abundances compared to four of the other
     species. To summarize the results from the W-statistic, let's take a look
     at the results from the hypothesis test:
+
     >>> results['reject']
     b1    False
     b2    False
@@ -150,6 +162,7 @@ def ancom(table, grouping,
     b6    False
     b7    False
     Name: reject, dtype: bool
+
     From this we can conclude that only `b2` was significantly
     different between the treatment and the control.
     """
@@ -318,7 +331,7 @@ def _log_compare(mat, cats,
     return log_ratio
 
 
-def _stationary_log_compare(mat, cats, permutations=1000):
+def _stationary_log_compare(mat, cats, permutations=1000, random_state=None):
     """
     Calculates pairwise log ratios between all otus
     and performs a permutation tests to determine if there is a
@@ -340,7 +353,7 @@ def _stationary_log_compare(mat, cats, permutations=1000):
     r, c = mat.shape
     log_mat = np.log(mat)
     log_ratio = np.zeros((c, c), dtype=np.float64)
-    perms = _init_categorical_perms(cats, permutations)
+    perms = _init_categorical_perms(cats, permutations, random_state=random_state)
     perms = perms.astype(np.float64)
     for i in range(c-1):
         ratio = log_mat[:, i] - log_mat[:, i+1:].T
