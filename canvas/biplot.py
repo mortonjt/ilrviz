@@ -1,5 +1,4 @@
 from __future__ import division
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.colors as colors
@@ -7,8 +6,6 @@ import matplotlib.cm as cmx
 import numpy as np
 import pandas as pd
 from collections import OrderedDict
-import collections
-import math
 
 
 def make_biplot(samples,
@@ -152,8 +149,8 @@ def make_biplot(samples,
     fig = plt.figure(figsize=figure_size)
     ax = fig.add_subplot(111)
 
-    sample_colors = cm = plt.get_cmap(samp_col)
-    feature_colors = cm = plt.get_cmap(feat_col)
+    sample_colors = plt.get_cmap(samp_col)
+    feature_colors = plt.get_cmap(feat_col)
 
     sample_group_append = []
     colorVal = []
@@ -315,7 +312,6 @@ def make_biplot(samples,
 
     recs = []
     feature = []
-    otu_feature_color = []
     otu_feature_append = []
     colorVal = []
 
