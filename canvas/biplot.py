@@ -18,7 +18,7 @@ def make_biplot(samples,
                 feature_color_dict=None,
                 **kwargs):
 
-    figure_size = (5, 5)
+    figure_size = (15, 15)
     samples_x = 'PCA1'
     samples_y = 'PCA2'
     samp_col = 'RdGy'
@@ -157,7 +157,7 @@ def make_biplot(samples,
 
     if sample_metadata is None:
         ax.plot(np.ravel(samples[samples_x]),
-                np.ravel(samples[samples_x]),
+                np.ravel(samples[samples_y]),
                 marker=samp_marker, linestyle='',
                 ms=samp_ms, alpha=samp_alpha)
 
@@ -321,8 +321,8 @@ def make_biplot(samples,
                       width=arrow_width, head_width=arrow_head,
                       alpha=feat_alpha, color='b')
 
-    if (feature_metadata is not None and
-            feature_color_dict is None and
+    if (features is not None and
+            feature_metadata is not None and
             feature_color_category is None):
             otu_feature_append = []
 
@@ -362,7 +362,9 @@ def make_biplot(samples,
                        title=feature_color_category)
             feature_color_dict = None
 
-    if (feature_metadata is not None and feature_color_category is not None):
+    if (features is not None and
+            feature_metadata is not None and
+            feature_color_category is not None):
 
         feature_groups = features.groupby(
             feature_metadata[feature_color_category])
@@ -436,8 +438,7 @@ def make_biplot(samples,
     if len(eigenvalues) > 2:
         e_0 = eigenvalues[0]
         e_1 = eigenvalues[1]
-        e = eigenvalues
-        ax.set_xlabel('PC 1 ({:.2%})'.format(e_0[0]**2/sum(e**2)))
-        ax.set_ylabel('PC 2 ({:.2%})'.format(e_1[1]**2/sum(e**2)))
+        ax.set_xlabel('PC 1 ({:.2%})'.format(e_0**2/sum(eigenvalues**2)))
+        ax.set_ylabel('PC 2 ({:.2%})'.format(e_1**2/sum(eigenvalues**2)))
 
     return fig, [ax, ax2]
