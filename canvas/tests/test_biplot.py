@@ -3,11 +3,7 @@ import unittest
 import pandas as pd
 import numpy as np
 import numpy.testing as npt
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from collections import OrderedDict
-import collections
 from canvas.biplot import make_biplot
 
 
