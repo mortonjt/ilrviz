@@ -55,6 +55,8 @@ class TestBiplot(unittest.TestCase):
                                                      ('Gut', '#D04984'),
                                                      ('Skin', '#D4D71C')])
 
+        self.sample_empty_test = []
+
     def test_sample_position(self):
 
         fig = make_biplot(self.sample_df_test,
@@ -396,6 +398,9 @@ class TestBiplot(unittest.TestCase):
         npt.assert_equal(test_feature_metadata_grouping_label_category3,
                          a[1].legend_.texts[2].get_text())
 
+    def test_sample_warning(self):
+        with self.assertRaises(ValueError):
+            make_biplot([])
 
 if __name__ == '__main__':
     unittest.main()
