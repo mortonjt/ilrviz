@@ -433,7 +433,7 @@ def make_biplot(samples,
         ax.set_xlim(xmin - xpad, xmax + xpad)
         ax.set_ylim(ymin - ypad, ymax + ypad)
         ax2.set_yticks([])
-    if len(eigenvalues) > 0:
+    if len(eigenvalues) > 2:
         e_0 = eigenvalues[0]
         e_1 = eigenvalues[1]
         e = eigenvalues
