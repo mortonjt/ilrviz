@@ -1,7 +1,7 @@
 from __future__ import division
 from scipy.stats import f_oneway
 from canvas.phylogeny import phylogenetic_basis
-from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace
+from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
 import numpy as np
 import pandas as pd
 import scipy
@@ -24,6 +24,34 @@ def default_layout(node):
         # And place as a float face over the tree
         faces.add_face_to_node(C, node, 0, position="float")
 
+def barchart_layout(node, name='name',
+                    width=20, height=40,
+                    colors=None, min_value=0, max_value=1,
+                    fsize=14, fgcolor="black"):
+    if colors is None:
+        colors = ['#0000FF']
+    if node.is_leaf():
+        # Add node name to leaf nodes
+        N = AttrFace("name", fsize=fsize, fgcolor=fgcolor)
+
+        faces.add_face_to_node(N, node, 0)
+    if "weight" in node.features:
+        # Creates a sphere face whose size is proportional to node's
+        # feature "weight"
+        if (isinstance(node.weight, int) or
+            isinstance(node.weight, float)):
+            weight = [node.weight]
+        else:
+            weight = node.weight
+        C = BarChartFace(values=weight, width=width, height=height,
+                         colors=['#0000FF'], min_value=min_value,
+                         max_value=max_value)
+        # Let's make the sphere transparent
+        C.opacity = 0.5
+        # Rotate the faces by 270*
+        C.rotation = 270
+        # And place as a float face over the tree
+        faces.add_face_to_node(C, node, 0, position="float")
 
 def balanceplot(balances, tree,
                 layout=None,
@@ -39,7 +67,8 @@ def balanceplot(balances, tree,
         A strictly bifurcating tree defining a hierarchical relationship
         between all of the features within `table`.
     layout : function, optional
-        A layout for formatting the tree visualization.
+        A layout for formatting the tree visualization. Must take a
+        `ete.tree` as a parameter.
     mode : str
         Type of display to show the tree. ('c': circular, 'r': rectangular).
 
@@ -53,26 +82,22 @@ def balanceplot(balances, tree,
     TreeNode.levelorder
     """
     # The names aren't preserved - let's pray that the topology is consistent.
-    ete_tree = Tree(str(sk_tree))
-    cats = set(mapping)
+    ete_tree = Tree(str(tree))
     # Some random features in all nodes
     i = 0
-
     for n in ete_tree.traverse():
         if not n.is_leaf():
-            if np.any([c.is_leaf() for c in n.children]):
-                i += 1
-                continue
-
-            n.add_features(weight=balances[i])
+            n.add_features(weight=balances[-i])
             i += 1
+
     # Create an empty TreeStyle
     ts = TreeStyle()
 
     # Set our custom layout function
     if layout is None:
         ts.layout_fn = default_layout
-
+    else:
+        ts.layout_fn = layout
     # Draw a tree
     ts.mode = mode
 
@@ -112,7 +137,8 @@ def balance_test(table, grouping, tree,
         array_like arguments of floats and returns a test statistic and a
         p-value. By default ``scipy.stats.f_oneway`` is used.
     layout : function, optional
-        A layout for formatting the tree visualization.
+        A layout for formatting the tree visualization. Must take a
+        `ete.tree` as a parameter.
     mode : str
         Type of display to show the tree. ('c': circular, 'r': rectangular).
 
@@ -187,9 +213,6 @@ def balance_test(table, grouping, tree,
     i = 0
     for n in ete_tree.traverse():
         if not n.is_leaf():
-            if np.any([c.is_leaf() for c in n.children]):
-                i += 1
-                continue
             diffs = [ilr_coords[(grouping == x).values, i] for x in cats]
             stat, _ = significance_test(*diffs)
             n.add_features(weight=stat)
@@ -201,6 +224,8 @@ def balance_test(table, grouping, tree,
     # Set our custom layout function
     if layout is None:
         ts.layout_fn = default_layout
+    else:
+        ts.layout_fn = layout
 
     # Draw a tree
     ts.mode = mode
