@@ -172,7 +172,7 @@ def fisher_mean(table, grouping, permutations=1000, random_state=None):
     b3   0.333333  1.000000
     b4   0.333333  1.000000
     b5   1.000000  1.000000
-    b6   1.666667  0.108911
+    b6   1.666667  1.000000
     b7   0.333333  1.000000
 
     Notes
