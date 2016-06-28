@@ -34,8 +34,6 @@ def check_table_grouping(table, grouping):
     table_index_len = len(table.index)
     grouping_index_len = len(grouping.index)
     mat, cats = table.align(grouping, axis=0, join='inner')
-    print(len(mat), table_index_len)
-    print(len(cats),  grouping_index_len)
     if (len(mat) != table_index_len or len(cats) != grouping_index_len):
         raise ValueError('`table` index and `grouping` '
                          'index must be consistent.')
