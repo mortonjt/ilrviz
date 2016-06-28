@@ -1,6 +1,6 @@
 from __future__ import division
-from scipy.stats import f_oneway
 from canvas.phylogeny import phylogenetic_basis
+from skbio.stats.composition import ilr
 from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
 import numpy as np
 import pandas as pd
@@ -24,6 +24,7 @@ def default_layout(node):
         # And place as a float face over the tree
         faces.add_face_to_node(C, node, 0, position="float")
 
+
 def barchart_layout(node, name='name',
                     width=20, height=40,
                     colors=None, min_value=0, max_value=1,
@@ -38,8 +39,7 @@ def barchart_layout(node, name='name',
     if "weight" in node.features:
         # Creates a sphere face whose size is proportional to node's
         # feature "weight"
-        if (isinstance(node.weight, int) or
-            isinstance(node.weight, float)):
+        if (isinstance(node.weight, int) or isinstance(node.weight, float)):
             weight = [node.weight]
         else:
             weight = node.weight
@@ -52,6 +52,7 @@ def barchart_layout(node, name='name',
         C.rotation = 270
         # And place as a float face over the tree
         faces.add_face_to_node(C, node, 0, position="float")
+
 
 def balanceplot(balances, tree,
                 layout=None,
@@ -110,10 +111,11 @@ def balanceplot(balances, tree,
     return ete_tree, ts
 
 
-def balance_test(table, grouping, tree,
-                 significance_test=None,
-                 layout=None,
-                 mode='c'):
+def balancetest(table, grouping, tree,
+                significance_test=None,
+                layout=None,
+                normalize=True,
+                mode='c'):
     """ Performs statistical test on ilr balances and plots on tree.
 
     Parameters
@@ -135,7 +137,8 @@ def balance_test(table, grouping, tree,
         A statistical significance function to test for significance between
         classes.  This function must be able to accept at least two 1D
         array_like arguments of floats and returns a test statistic and a
-        p-value. By default ``scipy.stats.f_oneway`` is used.
+        p-value, or a single statistic. By default ``scipy.stats.f_oneway``
+        is used.
     layout : function, optional
         A layout for formatting the tree visualization. Must take a
         `ete.tree` as a parameter.
@@ -147,17 +150,21 @@ def balance_test(table, grouping, tree,
     ete_tree : ete.Tree
         ETE tree converted from the `skbio.TreeNode` object
     ts : ete.TreeStyle
-        ETE tree style used for formatting the visualized tree.
+        ETE tree style used for formatting the visualized tree,
+        with the test statistic plotted on each of the internal nodes.
 
     Note
     ----
     The `skbio.TreeNode` is assumed to strictly bifurcating and
-    whose tips match `table`.
+    whose tips match `table`.  Also, it is assumed that none
+    of the values in `table` are zero.  Replace with a pseudocount
+    if necessary.
 
     See also
     --------
     skbio.TreeNode.bifurcate
     skbio.stats.composition.ilr
+    skbio.stats.multiplicative_replacement
     scipy.stats.f_oneway
     """
     if not isinstance(table, pd.DataFrame):
@@ -200,22 +207,38 @@ def balance_test(table, grouping, tree,
         significance_test = scipy.stats.f_oneway
 
     sorted_features = [n.name for n in tree.tips()][::-1]
-    if len(sorted_features) != len(table.index):
-        raise ValueError('The number of tips in the tree must be equal '
-                         'to the number features in the table.')
-    table = table.reindex(sorted_otus, axis=1)
+    if len(sorted_features) != len(table.columns):
+        raise ValueError('The number of tips (%d) in the tree must be equal '
+                         'to the number features in the table (%d).' %
+                         (len(sorted_features), len(table.columns)))
+    table = table.reindex(columns=sorted_features)
+    table_index_len = len(table.index)
+    grouping_index_len = len(grouping.index)
+    mat, cats = table.align(grouping, axis=0, join='inner')
+    if (len(mat) != table_index_len or len(cats) != grouping_index_len):
+        raise ValueError('`table` index and `grouping` '
+                         'index must be consistent.')
+
     basis, nodes = phylogenetic_basis(tree)
-    ilr_coords = ilr(table, basis=basis)
+    ilr_coords = ilr(mat, basis=basis)
 
-    ete_tree = Tree(str(sk_tree))
-    cats = set(grouping)
+    ete_tree = Tree(str(tree))
 
+    _cats = set(grouping)
     i = 0
     for n in ete_tree.traverse():
         if not n.is_leaf():
-            diffs = [ilr_coords[(grouping == x).values, i] for x in cats]
-            stat, _ = significance_test(*diffs)
-            n.add_features(weight=stat)
+            diffs = [ilr_coords[(cats == x).values, i] for x in _cats]
+
+            stat = significance_test(*diffs)
+            if len(stat) == 2:
+                n.add_features(weight=-np.log(stat[1]))
+            elif len(stat) == 1:
+                n.add_features(weight=stat)
+            else:
+                raise ValueError(
+                    "Too many arguments returned by %s" %
+                    significance_test.__name__)
             i += 1
 
     # Create an empty TreeStyle

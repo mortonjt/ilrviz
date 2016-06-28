@@ -1,5 +1,5 @@
 from __future__ import division
-from canvas.viz.ilrtree import balance_test, balanceplot
+from canvas.viz.balances import balancetest
 from skbio import TreeNode
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ class BalanceTests(unittest.TestCase):
             [10, 11, 10, 10, 10, 11],
             [10, 13, 10, 10, 10, 12]]).T
         self.cats1 = pd.Series([0, 0, 0, 1, 1, 1])
-        self.tree1 = TreeNode.read([u"((((((a,b)c, d)e, f)g, h)i, j)k, l);"])
+        self.tree1 = TreeNode.read([u"((((((a,b), d), f), h), j), l);"])
         # Real valued data with 2 groupings
         D, L = 40, 80
         np.random.seed(0)
@@ -223,26 +223,33 @@ class BalanceTests(unittest.TestCase):
 
     def test_ancom_fail_missing(self):
         with self.assertRaises(ValueError):
-            balance_test(self.bad3, self.cats1, self.tree1)
+            balancetest(self.bad3, self.cats1, self.tree1)
 
         with self.assertRaises(ValueError):
-            balance_test(self.table1, self.badcats1, self.tree1)
+            balancetest(self.table1, self.badcats1, self.tree1)
 
     def test_ancom_fail_groups(self):
         with self.assertRaises(ValueError):
-            balance_test(self.table1, self.badcats2, self.tree1)
+            balancetest(self.table1, self.badcats2, self.tree1)
 
     def test_ancom_fail_size_mismatch(self):
         with self.assertRaises(ValueError):
-            balance_test(self.table1, self.badcats3, self.tree1)
+            balancetest(self.table1, self.badcats3, self.tree1)
 
     def test_ancom_fail_group_unique(self):
         with self.assertRaises(ValueError):
-            balance_test(self.table1, self.badcats4, self.tree1)
+            balancetest(self.table1, self.badcats4, self.tree1)
 
     def test_ancom_fail_1_group(self):
         with self.assertRaises(ValueError):
-            balance_test(self.table1, self.badcats5, self.tree1)
+            balancetest(self.table1, self.badcats5, self.tree1)
+
+    def test_ancom_fail_significance_test(self):
+        with self.assertRaises(ValueError):
+            balancetest(self.table1, self.cats1, self.tree1,
+                        significance_test=lambda x, y: (sum(x),
+                                                        sum(y),
+                                                        sum(x)))
 
 if __name__ == '__main__':
     unittest.main()

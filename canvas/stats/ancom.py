@@ -5,6 +5,7 @@ import scipy
 from canvas.stats.permutation import (_init_categorical_perms,
                                       _np_k_sample_f_statistic)
 
+
 def ancom(table, grouping,
           alpha=0.05,
           tau=0.02,
