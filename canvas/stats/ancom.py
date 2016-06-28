@@ -1,9 +1,7 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
-
 import scipy
-
 from canvas.stats.permutation import (_init_categorical_perms,
                                       _np_k_sample_f_statistic)
 
@@ -26,6 +24,7 @@ def ancom(table, grouping,
     where :math:`u_i^{(1)}` is the mean abundance for feature :math:`i` in the
     first group and :math:`u_i^{(2)}` is the mean abundance for feature
     :math:`i` in the second group.
+
     Parameters
     ----------
     table : pd.DataFrame
