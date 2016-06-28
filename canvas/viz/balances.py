@@ -4,7 +4,6 @@ from skbio.stats.composition import ilr
 from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
 from canvas.util import check_table_grouping
 import numpy as np
-import pandas as pd
 import scipy
 
 

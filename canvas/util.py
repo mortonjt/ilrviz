@@ -41,6 +41,7 @@ def check_table_grouping(table, grouping):
                          'index must be consistent.')
     return mat, cats
 
+
 def match(table, metadata):
     """ Returns common samples between metadata and table.
 
