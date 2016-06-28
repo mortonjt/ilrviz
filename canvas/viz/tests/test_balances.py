@@ -221,30 +221,30 @@ class BalanceTests(unittest.TestCase):
         self.badcats4 = pd.Series(range(len(self.table1)))
         self.badcats5 = pd.Series([1]*len(self.table1))
 
-    def test_ancom_fail_missing(self):
+    def test_balance_fail_missing(self):
         with self.assertRaises(ValueError):
             balancetest(self.bad3, self.cats1, self.tree1)
 
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.badcats1, self.tree1)
 
-    def test_ancom_fail_groups(self):
+    def test_balance_fail_groups(self):
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.badcats2, self.tree1)
 
-    def test_ancom_fail_size_mismatch(self):
+    def test_balance_fail_size_mismatch(self):
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.badcats3, self.tree1)
 
-    def test_ancom_fail_group_unique(self):
+    def test_balance_fail_group_unique(self):
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.badcats4, self.tree1)
 
-    def test_ancom_fail_1_group(self):
+    def test_balance_fail_1_group(self):
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.badcats5, self.tree1)
 
-    def test_ancom_fail_significance_test(self):
+    def test_balance_fail_significance_test(self):
         with self.assertRaises(ValueError):
             balancetest(self.table1, self.cats1, self.tree1,
                         significance_test=lambda x, y: (sum(x),

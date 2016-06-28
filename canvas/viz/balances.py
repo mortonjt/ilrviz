@@ -2,6 +2,7 @@ from __future__ import division
 from canvas.phylogeny import phylogenetic_basis
 from skbio.stats.composition import ilr
 from ete3 import Tree, TreeStyle, faces, AttrFace, CircleFace, BarChartFace
+from canvas.util import check_table_grouping
 import numpy as np
 import pandas as pd
 import scipy
@@ -167,41 +168,11 @@ def balancetest(table, grouping, tree,
     skbio.stats.multiplicative_replacement
     scipy.stats.f_oneway
     """
-    if not isinstance(table, pd.DataFrame):
-        raise TypeError('`table` must be a `pd.DataFrame`, '
-                        'not %r.' % type(table).__name__)
-    if not isinstance(grouping, pd.Series):
-        raise TypeError('`grouping` must be a `pd.Series`,'
-                        ' not %r.' % type(grouping).__name__)
 
     if np.any(table <= 0):
         raise ValueError('Cannot handle zeros or negative values in `table`. '
                          'Use pseudo counts or ``multiplicative_replacement``.'
                          )
-
-    if (grouping.isnull()).any():
-        raise ValueError('Cannot handle missing values in `grouping`.')
-
-    if (table.isnull()).any().any():
-        raise ValueError('Cannot handle missing values in `table`.')
-
-    groups, _grouping = np.unique(grouping, return_inverse=True)
-    grouping = pd.Series(_grouping, index=grouping.index)
-    num_groups = len(groups)
-
-    if num_groups == len(grouping):
-        raise ValueError(
-            "All values in `grouping` are unique. This method cannot "
-            "operate on a grouping vector with only unique values (e.g., "
-            "there are no 'within' variance because each group of samples "
-            "contains only a single sample).")
-
-    if num_groups == 1:
-        raise ValueError(
-            "All values the `grouping` are the same. This method cannot "
-            "operate on a grouping vector with only a single group of samples"
-            "(e.g., there are no 'between' variance because there is only a "
-            "single group).")
 
     if significance_test is None:
         significance_test = scipy.stats.f_oneway
@@ -212,19 +183,15 @@ def balancetest(table, grouping, tree,
                          'to the number features in the table (%d).' %
                          (len(sorted_features), len(table.columns)))
     table = table.reindex(columns=sorted_features)
-    table_index_len = len(table.index)
-    grouping_index_len = len(grouping.index)
-    mat, cats = table.align(grouping, axis=0, join='inner')
-    if (len(mat) != table_index_len or len(cats) != grouping_index_len):
-        raise ValueError('`table` index and `grouping` '
-                         'index must be consistent.')
+
+    mat, cats = check_table_grouping(table, grouping)
 
     basis, nodes = phylogenetic_basis(tree)
     ilr_coords = ilr(mat, basis=basis)
 
     ete_tree = Tree(str(tree))
 
-    _cats = set(grouping)
+    _cats = set(cats)
     i = 0
     for n in ete_tree.traverse():
         if not n.is_leaf():
