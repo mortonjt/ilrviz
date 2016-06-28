@@ -104,5 +104,39 @@ class UtilTests(unittest.TestCase):
         assert_data_frame_almost_equal(exp_table, res_table)
         assert_series_almost_equal(exp_grouping, res_grouping)
 
+    def test_match_data_frames(self):
+        table = pd.DataFrame([
+            [10, 10, 10, 20, 20],
+            [11, 12, 11, 21, 21],
+            [10, 11, 10, 10, 10],
+            [10, 11, 10, 10, 9],
+            [10, 11, 10, 10, 10],
+            [10, 11, 10, 10, 11],
+            [10, 13, 10, 10, 12]]).T
+        table.index = ['a', 'b', 'c', 'd', 'e']
+        grouping = pd.DataFrame([[0, 1, 0, 1, 1],
+                                 [0, 1, 0, 1, 0]],
+                                columns=['b', 'c', 'd', 'e', 'f'],
+                                index=['env', '1']).T
+
+        res_table, res_grouping = match(table, grouping)
+        exp_table = pd.DataFrame([
+            [10, 10, 20, 20],
+            [12, 11, 21, 21],
+            [11, 10, 10, 10],
+            [11, 10, 10, 9],
+            [11, 10, 10, 10],
+            [11, 10, 10, 11],
+            [13, 10, 10, 12]],
+            columns=['b', 'c', 'd', 'e']).T
+        exp_grouping = pd.DataFrame([[0, 1, 0, 1],
+                                     [0, 1, 0, 1]],
+                                    columns=['b', 'c', 'd', 'e'],
+                                    index=['env', '1']).T
+        res_table = res_table.reindex(index=['b', 'c', 'd', 'e'])
+        res_grouping = res_grouping.reindex(index=['b', 'c', 'd', 'e'])
+        assert_data_frame_almost_equal(exp_table, res_table)
+        assert_data_frame_almost_equal(exp_grouping, res_grouping)
+
 if __name__ == '__main__':
     unittest.main()

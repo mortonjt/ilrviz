@@ -49,20 +49,20 @@ def match(table, metadata):
 
     Parameters
     ----------
-    table: pd.DataFrame
+    table: pd.DataFrame or pd.Series
         Contingency table where columns correspond to features
         and rows correspond to samples.
-    metadata : pd.DataFrame
+    metadata : pd.DataFrame or pd.Series
         Metadata table where columns correspond to metadata
         and rows correspond to samples.
 
     Returns
     -------
-    subtable: pd.DataFrame
+    subtable: pd.DataFrame or pd.Series
         Contingency table where columns correspond to features
         and rows correspond to samples.  Contains only samples
         that are found in both subtable and submetadata.
-    submetadata : pd.DataFrame
+    submetadata : pd.DataFrame or pd.Series
         Metadata table where columns correspond to metadata
         and rows correspond to samples.  Contains only samples
         that are found in both subtable and submetadata.
