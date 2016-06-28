@@ -106,7 +106,7 @@ class TestPermutation(unittest.TestCase):
                                   0.333333, 1.000000, 1.666667,
                                   0.333333],
                             'pvalue': [0.108910891089, 0.108910891089,
-                                       1.0, 1.0, 1.0, 0.257425742574, 1.0]},
+                                       1.0, 1.0, 1.0, 1.0, 1.0]},
                            index=['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7'])
         assert_data_frame_almost_equal(results, exp)
 
