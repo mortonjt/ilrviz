@@ -9,6 +9,13 @@ def check_table_grouping(table, grouping):
     if not isinstance(grouping, pd.Series):
         raise TypeError('`grouping` must be a `pd.Series`,'
                         ' not %r.' % type(grouping).__name__)
+
+    if (grouping.isnull()).any():
+        raise ValueError('Cannot handle missing values in `grouping`.')
+
+    if (table.isnull()).any().any():
+        raise ValueError('Cannot handle missing values in `table`.')
+
     groups, _grouping = np.unique(grouping, return_inverse=True)
     grouping = pd.Series(_grouping, index=grouping.index)
     num_groups = len(groups)
@@ -27,8 +34,41 @@ def check_table_grouping(table, grouping):
     table_index_len = len(table.index)
     grouping_index_len = len(grouping.index)
     mat, cats = table.align(grouping, axis=0, join='inner')
-
     if (len(mat) != table_index_len or len(cats) != grouping_index_len):
         raise ValueError('`table` index and `grouping` '
                          'index must be consistent.')
     return mat, cats
+
+
+def match(table, metadata):
+    """ Returns common samples between metadata and table.
+
+    Finds the samples that are common between the `table`,
+    and the `metadata`, and returns the subset of the `table`
+    and `metadata` with those samples.
+
+    Parameters
+    ----------
+    table: pd.DataFrame or pd.Series
+        Contingency table where columns correspond to features
+        and rows correspond to samples.
+    metadata : pd.DataFrame or pd.Series
+        Metadata table where columns correspond to metadata
+        and rows correspond to samples.
+
+    Returns
+    -------
+    subtable: pd.DataFrame or pd.Series
+        Contingency table where columns correspond to features
+        and rows correspond to samples.  Contains only samples
+        that are found in both subtable and submetadata.
+    submetadata : pd.DataFrame or pd.Series
+        Metadata table where columns correspond to metadata
+        and rows correspond to samples.  Contains only samples
+        that are found in both subtable and submetadata.
+
+    """
+    ids = list(set(table.index) & set(metadata.index))
+    subtable = table.loc[ids]
+    submetadata = metadata.loc[ids]
+    return subtable, submetadata

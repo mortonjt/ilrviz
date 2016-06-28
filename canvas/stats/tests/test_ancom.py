@@ -9,7 +9,7 @@ import scipy
 import copy
 from skbio.stats.composition import closure
 from skbio.util import assert_data_frame_almost_equal
-from canvas.stats.ancom import (_holm_bonferroni, ancom)
+from canvas.stats._ancom import (_holm_bonferroni, ancom)
 
 
 class AncomTests(TestCase):
