@@ -59,7 +59,7 @@ class TestPhylogeny(unittest.TestCase):
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertItemsEqual(exp_keys, res_keys)
+        self.assertListEqual(exp_keys, list(res_keys))
 
     def test_balance_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
@@ -73,7 +73,7 @@ class TestPhylogeny(unittest.TestCase):
         res_basis, res_keys = _balance_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertItemsEqual(exp_keys, res_keys)
+        self.assertListEqual(exp_keys, list(res_keys))
 
     def test_phylogenetic_basis_base_case(self):
         tree = u"(a,b);"
@@ -83,7 +83,7 @@ class TestPhylogeny(unittest.TestCase):
         res_basis, res_keys = phylogenetic_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertItemsEqual(exp_keys, res_keys)
+        self.assertListEqual(exp_keys, list(res_keys))
 
     def test_phylogenetic_basis_unbalanced(self):
         tree = u"((a,b)c, d);"
@@ -95,7 +95,7 @@ class TestPhylogeny(unittest.TestCase):
         res_basis, res_keys = phylogenetic_basis(t)
 
         npt.assert_allclose(exp_basis, res_basis)
-        self.assertItemsEqual(exp_keys, res_keys)
+        self.assertListEqual(exp_keys, list(res_keys))
 
     def test_phylogenetic_basis_large1(self):
         fname = get_data_path('large_tree.nwk',
