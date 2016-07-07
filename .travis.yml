@@ -2,7 +2,7 @@
 sudo: false
 language: python
 env:
-  - PYVERSION=2.7 USE_CYTHON=TRUE
+  - PYVERSION=3.5 USE_CYTHON=TRUE
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
