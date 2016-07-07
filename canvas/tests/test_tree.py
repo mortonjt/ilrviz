@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from canvas.tree import collapse, _trim_level, _is_collapsible
 from skbio import TreeNode
+
 from skbio.util import assert_data_frame_almost_equal
 
 

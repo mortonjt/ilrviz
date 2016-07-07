@@ -61,6 +61,41 @@ def collapse(tree, table, level):
         The collapsed skbio.TreeNode object.
     trimmed_table : pd.DataFrame
         The collapsed contingency table.
+
+    Examples
+    --------
+    >>> from skbio import TreeNode
+    >>> import pandas as pd
+    >>> from canvas.tree import collapse
+    >>> table = pd.DataFrame({'a': [10, 20, 30],
+    ...                       'b': [5, 15, 25],
+    ...                       'd': [1, 2, 3]},
+    ...                      index=['s1', 's2', 's3'])
+    >>> tree_str = u"((a,b)c,d);"
+    >>> tree = TreeNode.read([tree_str])
+    >>> print(tree.ascii_art())
+                        /-a
+              /c-------|
+    ---------|          \-b
+             |
+              \-d
+
+    If we want to collapse the first level of the tree, we can only collapse
+    leaves `a` and `b` together.  These leaves will be combined into the
+    internal node `c`, and their corresponding counts will be added together.
+    The abundances of `d` will not be collapsed, since node `c` will need to
+    be collapsed before `d` can be merged with `c`.
+
+    >>> new_tree, new_table = collapse(tree, table, level=1)
+    >>> print(new_tree.ascii_art())
+              /-c
+    ---------|
+              \-d
+    >>> new_table
+        d   c
+    s1  1  15
+    s2  2  35
+    s3  3  55
     """
     # Strategy : Identify all of the internal node with children as leaves
     # -  If both children are leaves - collapse those leaves together
