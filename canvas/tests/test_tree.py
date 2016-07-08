@@ -147,6 +147,8 @@ class TestTree(unittest.TestCase):
         self.assertEqual(exp_tree.ascii_art(), res_tree.ascii_art())
         assert_data_frame_almost_equal(exp_table, res_table)
 
+    def test_collapse_no_table(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()

@@ -35,7 +35,7 @@ def _trim_level(tree, table):
     return collapsed_tree, collapsed_table
 
 
-def collapse(tree, table, level):
+def collapse(tree, table=None, level=1):
     """ Collapses tree leaves together.
 
     This functionality will collapse the tree leaves together.
@@ -46,10 +46,11 @@ def collapse(tree, table, level):
     ----------
     tree : skbio.TreeNode
         Input tree.
-    table : pd.DataFrame
+    table : pd.DataFrame, optional
         Contingency table where samples are rows and columns
-        correspond to features.
-    level : int
+        correspond to features.  If this is specified, the
+        table will also be collapsed.
+    level : int, optional
         Level at which to collapse nodes.  If the level specified
         is higher than the shortest root to leaf path in the tree,
         then that leaf will only be collapsed down to the length
@@ -103,9 +104,17 @@ def collapse(tree, table, level):
     # -  Repeat for each level.
     counter = level
     trimmed_tree = tree.copy()
-    trimmed_table = table.copy()
+    if table is not None:
+        trimmed_table = table.copy()
+    else:
+        trimmed_table = None
 
     while counter > 0:
-        trimmed_tree, trimmed_table = _trim_level(trimmed_tree, trimmed_table)
+        _trimmed_tree, trimmed_table = _trim_level(trimmed_tree, trimmed_table)
         counter = counter - 1
+        # If no nodes were collapsed, then break out of the loop.
+        if len(list(_trimmed_tree.tips())) == len(list(_trimmed_tree.tips())):
+            trimmed_tree = _trimmed_tree
+            break
+        trimmed_tree = _trimmed_tree
     return trimmed_tree, trimmed_table
