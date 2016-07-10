@@ -9,10 +9,13 @@ def _is_collapsible(tree):
     return True
 
 
-def _trim_level(tree, table):
+def _trim_level(tree, table=None):
     """ Collapses tree leaves together by one level. """
     collapsed_tree = tree.copy()
-    collapsed_table = table.copy()
+    if table is not None:
+        collapsed_table = table.copy()
+    else:
+        collapsed_table = None
     i = 0
     removed = set()
     for n in collapsed_tree.levelorder():
@@ -21,12 +24,13 @@ def _trim_level(tree, table):
         if _is_collapsible(n):
             cs = n.children
             names = [c.name for c in cs]
-            collapsed_feature = table[names].sum(axis=1)
-            collapsed_table = collapsed_table.drop(names, axis=1)
-            if n.name is not None:
-                collapsed_table[n.name] = collapsed_feature
-            else:
-                collapsed_table[i] = collapsed_feature
+            if table is not None:
+                collapsed_feature = table[names].sum(axis=1)
+                collapsed_table = collapsed_table.drop(names, axis=1)
+                if n.name is not None:
+                    collapsed_table[n.name] = collapsed_feature
+                else:
+                    collapsed_table[i] = collapsed_feature
 
             while len(n.children) > 0:
                 c = n.pop()
@@ -102,6 +106,7 @@ def collapse(tree, table=None, level=1):
     # -  If both children are leaves - collapse those leaves together
     #    and collapse the corresponding counts in the table
     # -  Repeat for each level.
+
     counter = level
     trimmed_tree = tree.copy()
     if table is not None:
@@ -109,12 +114,14 @@ def collapse(tree, table=None, level=1):
     else:
         trimmed_table = None
 
+    last_num_tips = len(list(tree.tips()))
     while counter > 0:
         _trimmed_tree, trimmed_table = _trim_level(trimmed_tree, trimmed_table)
         counter = counter - 1
         # If no nodes were collapsed, then break out of the loop.
-        if len(list(_trimmed_tree.tips())) == len(list(_trimmed_tree.tips())):
+        if len(list(_trimmed_tree.tips())) == last_num_tips:
             trimmed_tree = _trimmed_tree
             break
         trimmed_tree = _trimmed_tree
+        last_num_tips = len(list(trimmed_tree.tips()))
     return trimmed_tree, trimmed_table

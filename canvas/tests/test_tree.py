@@ -148,7 +148,13 @@ class TestTree(unittest.TestCase):
         assert_data_frame_almost_equal(exp_table, res_table)
 
     def test_collapse_no_table(self):
-        pass
+        # Collapse 2 levels
+        tree_str = u"((a,b)c, d);"
+        tree = TreeNode.read([tree_str])
+        exp_tree = TreeNode.read([u";"])
+
+        res_tree, _ = collapse(tree, level=2)
+        self.assertEqual(exp_tree.ascii_art(), res_tree.ascii_art())
 
 if __name__ == '__main__':
     unittest.main()
