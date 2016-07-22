@@ -3,70 +3,70 @@ import unittest
 import pandas as pd
 import numpy as np
 import numpy.testing as npt
-from collections import OrderedDict
 from canvas.biplot import make_biplot
 
 
 class TestBiplot(unittest.TestCase):
     def setUp(self):
 
-        self.sample_df_test = pd.DataFrame(
+        self.sample_test = pd.DataFrame(
             {'PCA1': [-1.25, 0, -1.25, 0, 1.25, 1.25],
              'PCA2': [-1.25, -1.25, 0, 1.25, 0, 1.25]},
             index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
 
-        self.feature_df_test = pd.DataFrame(
+        self.feature_test = pd.DataFrame(
             {'PCA1': [1.25, -1.25, 1.25],
              'PCA2': [1.25, -1.25, 0]},
             index=['OTU1', 'OTU2', 'OTU3'])
 
-        self.sample_df_test_big = pd.DataFrame(
+        self.sample_test_big = pd.DataFrame(
             {'PCA1': [-3, 0, -3, 0, 3, 3],
              'PCA2': [-3, -3, 0, 3, 0, 3]},
             index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
 
-        self.feature_df_test_small = pd.DataFrame(
+        self.feature_test_small = pd.DataFrame(
             {'PCA1': [0.5, -0.5, .5],
              'PCA2': [0.5, -.5, 0]},
             index=['OTU1', 'OTU2', 'OTU3'])
 
-        self.sample_df_test_small = pd.DataFrame(
+        self.sample_test_small = pd.DataFrame(
             {'PCA1': [-.5, 0, -.5, 0, .5, .5],
              'PCA2': [-.5, -.5, 0, .5, 0, .5]},
             index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
 
-        self.feature_df_test_big = pd.DataFrame(
+        self.feature_test_big = pd.DataFrame(
             {'PCA1': [3, -3, 3],
              'PCA2': [3, -3, 0]},
             index=['OTU1', 'OTU2', 'OTU3'])
 
-        self.sample_df_test_metadata = pd.DataFrame(
+        self.sample_test_metadata = pd.DataFrame(
             {'Days': ['One', 'One', 'One', 'Two', 'Two', 'Two']},
             index=['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
 
-        self.feature_df_test_metadata = pd.DataFrame(
-            {'Location': ['Oral', 'Gut', 'Skin']},
+        self.sample_test_metadata_mx = pd.DataFrame(
+            {'Days': ['One', 'One', 'One', 'Two', 'Two', 'Two']},
+            index=['S1', 'S2', 'S3', 'S7', 'S5', 'S6'])
+
+        self.feature_test_metadata = pd.DataFrame(
+            {'Loc': ['Oral', 'Gut', 'Skin']},
             index=['OTU1', 'OTU2', 'OTU3'])
 
-        self.sample_color_dictionary = {'One': '#6CAD3F',
-                                        'Two': '#CF5635'}
+        self.sample_color_test = pd.Series(
+                ['#6CAD3F', '#CF5635'],
+                index=['One', 'Two'])
 
-        self.feature_color_dictionary = OrderedDict([('Oral', '#219F8D'),
-                                                     ('Gut', '#D04984'),
-                                                     ('Skin', '#D4D71C')])
-
-        self.sample_empty_test = []
+        self.feature_color_test = pd.Series(
+                ['#219F8D', '#D04984', '#D4D71C'],
+                index=['Oral', 'Gut', 'Skin'])
 
     def test_sample_position(self):
 
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_sample_1 = np.array([[-1.25, -1.25],
@@ -82,14 +82,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_sample_position_big(self):
 
-        fig = make_biplot(self.sample_df_test_big,
-                          features=self.feature_df_test_small,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_big,
+                          features=self.feature_test_small,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_sample_1 = np.array([[-3., -3.],
@@ -105,14 +103,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_sample_position_small(self):
 
-        fig = make_biplot(self.sample_df_test_small,
-                          features=self.feature_df_test_big,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_small,
+                          features=self.feature_test_big,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_sample_1 = np.array([[-0.5, -0.5],
@@ -128,14 +124,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_feature_arrow(self):
 
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_arrow1 = np.array([[-1.30303301, -1.30303301],
@@ -171,14 +165,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_feature_arrow_small(self):
 
-        fig = make_biplot(self.sample_df_test_big,
-                          features=self.feature_df_test_small,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_big,
+                          features=self.feature_test_small,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_arrow1 = np.array([[-0.55303301, -0.55303301],
@@ -214,14 +206,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_feature_arrow_big(self):
 
-        fig = make_biplot(self.sample_df_test_small,
-                          features=self.feature_df_test_big,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_small,
+                          features=self.feature_test_big,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_arrow1 = np.array([[-3.05303301, -3.05303301],
@@ -260,14 +250,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_x_y_limits(self):
 
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_axis_1_xlim = (-2.0, 2.0)
@@ -286,14 +274,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_x_y_limits_sample_big(self):
 
-        fig = make_biplot(self.sample_df_test_big,
-                          features=self.feature_df_test_small,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_big,
+                          features=self.feature_test_small,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_axis_1_xlim = (-4.7999999999999998, 4.7999999999999998)
@@ -312,14 +298,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_x_y_limits_sample_small(self):
 
-        fig = make_biplot(self.sample_df_test_small,
-                          features=self.feature_df_test_big,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test_small,
+                          features=self.feature_test_big,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         expected_axis_1_xlim = (-4.7999999999999998, 4.7999999999999998)
@@ -338,14 +322,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_sample_metadata_grouping_label_category(self):
 
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         test_sample_metadata_grouping_label_category1 = ("One")
@@ -358,14 +340,12 @@ class TestBiplot(unittest.TestCase):
 
     def test_sample_metadata_grouping_color_category(self):
 
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         test_sample_metadata_grouping_color_category1 = ("#6CAD3F")
@@ -377,14 +357,12 @@ class TestBiplot(unittest.TestCase):
                          a[0].legend_.legendHandles[1].get_color())
 
     def test_feature_metadata_grouping_label_category(self):
-        fig = make_biplot(self.sample_df_test,
-                          features=self.feature_df_test,
-                          sample_metadata=self.sample_df_test_metadata,
-                          feature_metadata=self.feature_df_test_metadata,
-                          sample_color_category='Days',
-                          sample_color_dict=self.sample_color_dictionary,
-                          feature_color_category='Location',
-                          feature_color_dict=self.feature_color_dictionary)
+        fig = make_biplot(self.sample_test,
+                          features=self.feature_test,
+                          sample_metadata=self.sample_test_metadata['Days'],
+                          feature_metadata=self.feature_test_metadata['Loc'],
+                          sample_color=self.sample_color_test,
+                          feature_color=self.feature_color_test)
         f, a = fig
 
         test_feature_metadata_grouping_label_category1 = ("Oral")
@@ -397,6 +375,11 @@ class TestBiplot(unittest.TestCase):
                          a[1].legend_.texts[1].get_text())
         npt.assert_equal(test_feature_metadata_grouping_label_category3,
                          a[1].legend_.texts[2].get_text())
+
+    def test_sample_and_metadata_index_matching(self):
+        with self.assertRaises(ValueError):
+            make_biplot(self.sample_test,
+                        sample_metadata=self.sample_test_metadata_mx['Days'])
 
     def test_sample_warning(self):
         with self.assertRaises(ValueError):
