@@ -43,7 +43,7 @@ def make_biplot(samples,
       Dictionary, or Ordereded Dictionary, or pd.Series of
       colors corresponding to different features, or
       categories in `sample_metadata`.
-    
+
     Returns
     -------
     matplotlib.figure.Figure
